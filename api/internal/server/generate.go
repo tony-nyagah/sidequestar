@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -10,9 +11,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/tony-nyagah/sidequestar/api/internal/ollama"
 	"github.com/tony-nyagah/sidequestar/api/internal/store"
 	"github.com/tony-nyagah/sidequestar/api/internal/xp"
 )
+
+// generateTimeout covers a cold model load plus one answer on modest hardware.
+const generateTimeout = 2 * time.Minute
 
 type generateRequest struct {
 	Context string `json:"context"`
@@ -33,10 +38,21 @@ func (s *Server) handleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idea, err := s.gen.Generate(r.Context(), s.buildPrompt(r.Context(), strings.TrimSpace(req.Context)))
+	ctx, cancel := context.WithTimeout(r.Context(), generateTimeout)
+	defer cancel()
+	idea, err := s.gen.Generate(ctx, s.buildPrompt(ctx, strings.TrimSpace(req.Context)))
 	if err != nil {
 		slog.Error("generate quest", "err", err)
-		writeError(w, http.StatusBadGateway, "could not generate a quest")
+		switch {
+		case errors.Is(err, ollama.ErrUnreachable):
+			writeError(w, http.StatusServiceUnavailable, "Ollama isn't running. Start it with `ollama serve`, then try again.")
+		case errors.Is(err, ollama.ErrModelMissing):
+			writeError(w, http.StatusServiceUnavailable, fmt.Sprintf("The model isn't downloaded yet. Run `ollama pull %s`, then try again.", s.gen.Model()))
+		case errors.Is(err, context.DeadlineExceeded):
+			writeError(w, http.StatusGatewayTimeout, "The quest-giver took too long to answer. Try again.")
+		default:
+			writeError(w, http.StatusBadGateway, "The quest-giver couldn't come up with a quest. Try again.")
+		}
 		return
 	}
 
