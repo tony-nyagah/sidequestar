@@ -1,0 +1,29 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<section class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
+  <div class="mb-4 flex items-center gap-2">
+    <Icon name="ph:sparkle" class="size-5 text-secondary" aria-hidden="true" />
+    <h2 class="font-display text-lg font-bold">Summon a quest</h2>
+  </div>
+
+  <form method="post" action="/api/quests/generate" class="space-y-3">
+    <label class="block">
+      <span class="mb-1.5 block text-sm font-medium text-base-content/80">
+        Tell the quest-giver about your day
+      </span>
+      <textarea
+        name="context"
+        rows="3"
+        required
+        placeholder="I have two free hours this evening and I want to be outside, somewhere I can walk to."
+        class="textarea textarea-bordered w-full resize-none"
+      ></textarea>
+    </label>
+    <button type="submit" class="btn btn-primary w-full sm:w-auto">
+      <Icon name="ph:magic-wand" class="size-5" aria-hidden="true" />
+      Generate a quest
+    </button>
+  </form>
+</section>

@@ -1,0 +1,148 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import GenerateBox from "../components/GenerateBox.astro";
+import QuestCard from "../components/QuestCard.astro";
+import AddQuestForm from "../components/AddQuestForm.astro";
+import ProfileForm from "../components/ProfileForm.astro";
+import { Icon } from "astro-icon/components";
+import { listQuests, getProfile } from "../lib/api";
+import type { Profile, Quest } from "../lib/api";
+
+let profile: Profile | null = null;
+let active: Quest[] = [];
+let generated: Quest[] = [];
+let completed: Quest[] = [];
+let apiDown = false;
+
+try {
+  [profile, active, generated, completed] = await Promise.all([
+    getProfile(),
+    listQuests("active"),
+    listQuests("generated"),
+    listQuests("completed"),
+  ]);
+} catch {
+  apiDown = true;
+}
+
+const error = Astro.url.searchParams.get("error");
+const recent = completed.slice(0, 8);
+---
+
+<Layout title="Sidequestar — quests for the rest of your life">
+  {profile && <Header profile={profile} />}
+
+  <main class="mx-auto max-w-3xl px-5 py-8">
+    {
+      apiDown && (
+        <div class="alert alert-warning mb-6">
+          <Icon name="ph:warning-circle" class="size-5" aria-hidden="true" />
+          <span>
+            Can't reach the API. Start it with <code class="font-mono text-sm">cd api && make run</code>.
+          </span>
+        </div>
+      )
+    }
+
+    {error && (
+      <div class="alert alert-error mb-6">
+        <Icon name="ph:x-circle" class="size-5" aria-hidden="true" />
+        <span>{error}</span>
+      </div>
+    )}
+
+    <section class="mb-10 text-center">
+      <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-secondary">
+        There's more to life
+      </p>
+      <h1 class="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+        Go do something real.
+      </h1>
+      <p class="mx-auto mt-3 max-w-xl text-base-content/70">
+        Sidequestar hands you one small thing to do away from work and school — and gives you
+        XP for actually doing it.
+      </p>
+    </section>
+
+    <div class="space-y-6">
+      <GenerateBox />
+
+      {generated.length > 0 && (
+        <section>
+          <h2 class="mb-3 font-display text-lg font-bold text-base-content/80">Fresh quests</h2>
+          <div class="space-y-3">
+            {generated.map((q) => (
+              <QuestCard quest={q}>
+                <div class="flex flex-wrap gap-2">
+                  <form method="post" action={`/api/quests/${q.id}/accept`}>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                      <Icon name="ph:check" class="size-4" aria-hidden="true" />
+                      Accept
+                    </button>
+                  </form>
+                  <form method="post" action={`/api/quests/${q.id}/delete`}>
+                    <button type="submit" class="btn btn-ghost btn-sm">
+                      Dismiss
+                    </button>
+                  </form>
+                </div>
+              </QuestCard>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {active.length > 0 && (
+        <section>
+          <h2 class="mb-3 font-display text-lg font-bold text-base-content/80">On your list</h2>
+          <div class="space-y-3">
+            {active.map((q) => (
+              <QuestCard quest={q}>
+                <form
+                  method="post"
+                  action={`/api/quests/${q.id}/complete`}
+                  enctype="multipart/form-data"
+                  class="space-y-3"
+                >
+                  <label class="flex cursor-pointer items-center gap-2 text-sm text-base-content/70">
+                    <Icon name="ph:camera" class="size-5 text-accent" aria-hidden="true" />
+                    Add a photo for bonus XP (optional)
+                    <input type="file" name="photo" accept="image/*" class="file-input file-input-sm" />
+                  </label>
+                  <button type="submit" class="btn btn-success btn-sm">
+                    <Icon name="ph:flag-checkered" class="size-4" aria-hidden="true" />
+                    Mark done
+                  </button>
+                </form>
+              </QuestCard>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <AddQuestForm />
+
+      {recent.length > 0 && (
+        <section>
+          <h2 class="mb-3 font-display text-lg font-bold text-base-content/80">Completed</h2>
+          <ul class="space-y-2">
+            {recent.map((q) => (
+              <li class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100 px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <Icon name="ph:check-circle" class="size-5 text-success" aria-hidden="true" />
+                  <span class="line-through decoration-base-300">{q.title}</span>
+                </div>
+                {q.xp_awarded ? (
+                  <span class="badge badge-success badge-outline">+{q.xp_awarded} XP</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {profile && <ProfileForm profile={profile} />}
+    </div>
+  </main>
+</Layout>
