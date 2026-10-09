@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -14,6 +15,14 @@ import (
 	"github.com/tony-nyagah/sidequestar/api/internal/store"
 	"github.com/tony-nyagah/sidequestar/api/internal/xp"
 )
+
+const maxPhotoBytes = 20 << 20
+
+var errBadPhotoType = errors.New("unsupported photo type")
+
+var allowedPhotoExts = map[string]bool{
+	".jpg": true, ".jpeg": true, ".png": true, ".webp": true, ".gif": true, ".heic": true,
+}
 
 func (s *Server) handleListQuests(w http.ResponseWriter, r *http.Request) {
 	status := r.URL.Query().Get("status")
@@ -116,10 +125,19 @@ func (s *Server) handleCompleteQuest(w http.ResponseWriter, r *http.Request) {
 
 	var photoPath string
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+		r.Body = http.MaxBytesReader(w, r.Body, maxPhotoBytes)
 		photoPath, err = s.savePhoto(r)
 		if err != nil {
-			slog.Error("save photo", "err", err)
-			writeError(w, http.StatusInternalServerError, "could not save photo")
+			var tooBig *http.MaxBytesError
+			switch {
+			case errors.As(err, &tooBig):
+				writeError(w, http.StatusRequestEntityTooLarge, "photo is too large (max 20 MB)")
+			case errors.Is(err, errBadPhotoType):
+				writeError(w, http.StatusBadRequest, "photo must be a JPEG, PNG, WebP, GIF, or HEIC image")
+			default:
+				slog.Error("save photo", "err", err)
+				writeError(w, http.StatusInternalServerError, "could not save photo")
+			}
 			return
 		}
 	}
@@ -162,6 +180,9 @@ func (s *Server) savePhoto(r *http.Request) (string, error) {
 	defer file.Close()
 
 	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if !allowedPhotoExts[ext] {
+		return "", errBadPhotoType
+	}
 	name := uuid.NewString() + ext
 	dst, err := os.Create(s.photoPathFor(name))
 	if err != nil {

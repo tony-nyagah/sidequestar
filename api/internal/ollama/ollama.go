@@ -5,12 +5,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
+	"net"
+	"net/http"
 
 	"github.com/ollama/ollama/api"
 )
 
 const DefaultModel = "llama3.2:3b"
+
+var (
+	// ErrUnreachable means the Ollama server isn't running or can't be reached.
+	ErrUnreachable = errors.New("ollama unreachable")
+	// ErrModelMissing means Ollama is running but the model hasn't been pulled.
+	ErrModelMissing = errors.New("model not pulled")
+)
 
 type GeneratedQuest struct {
 	Title          string   `json:"title"`
@@ -21,6 +29,7 @@ type GeneratedQuest struct {
 
 type Generator interface {
 	Generate(ctx context.Context, prompt string) (GeneratedQuest, error)
+	Model() string
 }
 
 type Client struct {
@@ -28,6 +37,8 @@ type Client struct {
 	model string
 }
 
+// New builds a client without contacting Ollama, so the server can start
+// before Ollama does. Reachability is checked on each Generate call.
 func New(model string) (*Client, error) {
 	c, err := api.ClientFromEnvironment()
 	if err != nil {
@@ -36,14 +47,11 @@ func New(model string) (*Client, error) {
 	if model == "" {
 		model = DefaultModel
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	if _, err := c.Version(ctx); err != nil {
-		return nil, fmt.Errorf("ollama unreachable: %w", err)
-	}
-
 	return &Client{api: c, model: model}, nil
+}
+
+func (c *Client) Model() string {
+	return c.model
 }
 
 func (c *Client) Generate(ctx context.Context, prompt string) (GeneratedQuest, error) {
@@ -63,6 +71,14 @@ func (c *Client) Generate(ctx context.Context, prompt string) (GeneratedQuest, e
 		return json.Unmarshal([]byte(resp.Message.Content), &out)
 	})
 	if err != nil {
+		var statusErr api.StatusError
+		var netErr *net.OpError
+		switch {
+		case errors.As(err, &statusErr) && statusErr.StatusCode == http.StatusNotFound:
+			return GeneratedQuest{}, fmt.Errorf("%w: %w", ErrModelMissing, err)
+		case errors.As(err, &netErr):
+			return GeneratedQuest{}, fmt.Errorf("%w: %w", ErrUnreachable, err)
+		}
 		return GeneratedQuest{}, fmt.Errorf("ollama chat: %w", err)
 	}
 	if out.Title == "" {

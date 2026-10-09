@@ -36,12 +36,13 @@ func main() {
 
 	srv := server.New(st, filepath.Join(dataDir, "photos"))
 
-	if gen, err := ollama.New(ollamaModel); err != nil {
-		slog.Warn("ollama not available; generation disabled", "err", err)
-	} else {
-		srv.SetGenerator(gen)
-		slog.Info("ollama connected", "model", ollamaModelOrDefault(ollamaModel))
+	gen, err := ollama.New(ollamaModel)
+	if err != nil {
+		slog.Error("configure ollama client", "err", err)
+		os.Exit(1)
 	}
+	srv.SetGenerator(gen)
+	slog.Info("generation configured", "model", gen.Model())
 
 	addr := ":" + port
 	slog.Info("sidequestar api listening", "addr", addr)
@@ -56,11 +57,4 @@ func getenv(key, fallback string) string {
 		return v
 	}
 	return fallback
-}
-
-func ollamaModelOrDefault(model string) string {
-	if model == "" {
-		return ollama.DefaultModel
-	}
-	return model
 }
