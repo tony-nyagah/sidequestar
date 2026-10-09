@@ -6,7 +6,8 @@ const { handler } = await import("./dist/server/entry.mjs");
 
 const compress = compression();
 const port = Number(process.env.PORT ?? 4321);
-const host = process.env.HOST ?? "0.0.0.0";
+// Localhost by default; set HOST=0.0.0.0 to open it to your phone on the same network.
+const host = process.env.HOST ?? "127.0.0.1";
 
 http
   .createServer((req, res) => compress(req, res, () => handler(req, res)))

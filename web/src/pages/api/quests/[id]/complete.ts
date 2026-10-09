@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
-import { GO_API_URL } from "../../../../lib/api";
+import { GO_API_URL, formAction } from "../../../../lib/api";
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, params, redirect }) => {
-  const form = await request.formData();
+export const POST: APIRoute = async (ctx) => {
+  const form = await ctx.request.formData();
 
   const goForm = new FormData();
   const photo = form.get("photo");
@@ -12,14 +12,10 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
     goForm.set("photo", photo, photo.name);
   }
 
-  const res = await fetch(`${GO_API_URL}/api/quests/${params.id}/complete`, {
-    method: "POST",
-    body: goForm,
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    return redirect(`/?error=${encodeURIComponent(body.error ?? "Could not complete quest")}`);
-  }
-  return redirect("/");
+  return formAction(ctx, "Could not complete quest", () =>
+    fetch(`${GO_API_URL}/api/quests/${encodeURIComponent(ctx.params.id!)}/complete`, {
+      method: "POST",
+      body: goForm,
+    }),
+  );
 };

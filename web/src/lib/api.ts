@@ -1,3 +1,6 @@
+import type { APIContext, AstroCookies } from "astro";
+import { GO_API_URL } from "astro:env/server";
+
 export type QuestStatus = "generated" | "active" | "completed";
 export type DurationBucket =
   | "under-30m"
@@ -44,8 +47,7 @@ export function durationLabel(bucket: string): string {
   return DURATION_BUCKETS.find((b) => b.value === bucket)?.label ?? bucket;
 }
 
-export const GO_API_URL: string =
-  import.meta.env.GO_API_URL ?? "http://127.0.0.1:8080";
+export { GO_API_URL };
 
 export async function listQuests(status?: QuestStatus): Promise<Quest[]> {
   const url = status
@@ -60,4 +62,48 @@ export async function getProfile(): Promise<Profile> {
   const res = await fetch(`${GO_API_URL}/api/profile`);
   if (!res.ok) throw new Error(`get profile: ${res.status}`);
   return res.json();
+}
+
+const FLASH_COOKIE = "flash";
+
+/** Reads and clears the one-shot error message set by a form action. */
+export function takeFlash(cookies: AstroCookies): string | undefined {
+  const msg = cookies.get(FLASH_COOKIE)?.value;
+  if (msg) cookies.delete(FLASH_COOKIE, { path: "/" });
+  return msg;
+}
+
+/**
+ * Runs a form action against the Go API and redirects back home. Errors are
+ * passed through a short-lived cookie rather than the URL, so they don't
+ * linger on refresh and can't be injected via a crafted link.
+ */
+export async function formAction(
+  { cookies, redirect }: APIContext,
+  fallbackError: string,
+  send: () => Promise<Response>,
+): Promise<Response> {
+  let error: string | undefined;
+  try {
+    const res = await send();
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      error = body.error ?? fallbackError;
+    }
+  } catch {
+    error = "Can't reach the API. Is it running?";
+  }
+  if (error) {
+    cookies.set(FLASH_COOKIE, error, { path: "/", httpOnly: true, sameSite: "lax", maxAge: 60 });
+  }
+  return redirect("/", 303);
+}
+
+export function postJSON(path: string, body: unknown, init?: RequestInit): Promise<Response> {
+  return fetch(`${GO_API_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    ...init,
+  });
 }

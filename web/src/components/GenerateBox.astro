@@ -8,7 +8,7 @@ import { Icon } from "astro-icon/components";
     <h2 class="font-display text-lg font-bold">Summon a quest</h2>
   </div>
 
-  <form method="post" action="/api/quests/generate" class="space-y-3">
+  <form method="post" action="/api/quests/generate" class="space-y-3" data-generate-form>
     <label class="block">
       <span class="mb-1.5 block text-sm font-medium text-base-content/80">
         Tell the quest-giver about your day
@@ -22,8 +22,21 @@ import { Icon } from "astro-icon/components";
       ></textarea>
     </label>
     <button type="submit" class="btn btn-primary w-full sm:w-auto">
-      <Icon name="ph:magic-wand" class="size-5" aria-hidden="true" />
-      Generate a quest
+      <span class="loading loading-spinner loading-sm hidden" aria-hidden="true" data-spinner></span>
+      <Icon name="ph:magic-wand" class="size-5" aria-hidden="true" data-icon />
+      <span data-label>Generate a quest</span>
     </button>
   </form>
 </section>
+
+<script>
+  // A local model can take a few seconds; stop double submits and show progress.
+  document.querySelector<HTMLFormElement>("[data-generate-form]")?.addEventListener("submit", (e) => {
+    const form = e.currentTarget as HTMLFormElement;
+    const button = form.querySelector("button")!;
+    button.disabled = true;
+    button.querySelector("[data-spinner]")?.classList.remove("hidden");
+    button.querySelector("[data-icon]")?.classList.add("hidden");
+    button.querySelector("[data-label]")!.textContent = "Summoning…";
+  });
+</script>

@@ -6,7 +6,7 @@ import QuestCard from "../components/QuestCard.astro";
 import AddQuestForm from "../components/AddQuestForm.astro";
 import ProfileForm from "../components/ProfileForm.astro";
 import { Icon } from "astro-icon/components";
-import { listQuests, getProfile } from "../lib/api";
+import { listQuests, getProfile, takeFlash } from "../lib/api";
 import type { Profile, Quest } from "../lib/api";
 
 let profile: Profile | null = null;
@@ -26,7 +26,7 @@ try {
   apiDown = true;
 }
 
-const error = Astro.url.searchParams.get("error");
+const error = takeFlash(Astro.cookies);
 const recent = completed.slice(0, 8);
 ---
 
@@ -60,8 +60,8 @@ const recent = completed.slice(0, 8);
         Go do something real.
       </h1>
       <p class="mx-auto mt-3 max-w-xl text-base-content/70">
-        Sidequestar hands you one small thing to do away from work and school — and gives you
-        XP for actually doing it.
+        Sidequestar hands you one small thing to do out in the world — and gives you XP for
+        actually doing it.
       </p>
     </section>
 
@@ -108,7 +108,7 @@ const recent = completed.slice(0, 8);
                   <label class="flex cursor-pointer items-center gap-2 text-sm text-base-content/70">
                     <Icon name="ph:camera" class="size-5 text-accent" aria-hidden="true" />
                     Add a photo for bonus XP (optional)
-                    <input type="file" name="photo" accept="image/*" class="file-input file-input-sm" />
+                    <input type="file" name="photo" accept="image/jpeg,image/png,image/gif,image/webp" class="file-input file-input-sm" />
                   </label>
                   <button type="submit" class="btn btn-success btn-sm">
                     <Icon name="ph:flag-checkered" class="size-4" aria-hidden="true" />
@@ -129,9 +129,20 @@ const recent = completed.slice(0, 8);
           <ul class="space-y-2">
             {recent.map((q) => (
               <li class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-100 px-4 py-3">
-                <div class="flex items-center gap-2">
-                  <Icon name="ph:check-circle" class="size-5 text-success" aria-hidden="true" />
-                  <span class="line-through decoration-base-300">{q.title}</span>
+                <div class="flex min-w-0 items-center gap-3">
+                  {q.photo_path ? (
+                    <a href={`/api/photos/${q.photo_path}`} target="_blank" class="shrink-0">
+                      <img
+                        src={`/api/photos/${q.photo_path}`}
+                        alt={`Photo from “${q.title}”`}
+                        loading="lazy"
+                        class="size-12 rounded-box object-cover ring-1 ring-base-300"
+                      />
+                    </a>
+                  ) : (
+                    <Icon name="ph:check-circle" class="size-5 shrink-0 text-success" aria-hidden="true" />
+                  )}
+                  <span class="truncate line-through decoration-base-300">{q.title}</span>
                 </div>
                 {q.xp_awarded ? (
                   <span class="badge badge-success badge-outline">+{q.xp_awarded} XP</span>
