@@ -14,3 +14,10 @@ web/.env
 
 # OS
 .DS_Store
+
+# Impeccable session artifacts
+.impeccable/review/
+.impeccable/questions/
+
+# Core dumps
+core.*
