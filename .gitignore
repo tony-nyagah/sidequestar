@@ -1,0 +1,16 @@
+# Go
+api/bin/
+api/data/
+
+# Node / Astro
+web/node_modules/
+web/dist/
+web/.astro/
+
+# Env
+.env
+api/.env
+web/.env
+
+# OS
+.DS_Store
