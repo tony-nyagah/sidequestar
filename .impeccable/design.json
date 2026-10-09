@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-09T19:34:16.592731+00:00",
+  "title": "Design System: Sidequestar",
+  "extensions": {
+    "colorMeta": {
+      "map-paper": {
+        "role": "neutral",
+        "displayName": "Map Paper",
+        "canonical": "oklch(98.4% 0.006 230)",
+        "tonalRamp": [
+          "oklch(15% 0.006 230)",
+          "oklch(26% 0.006 230)",
+          "oklch(38% 0.006 230)",
+          "oklch(49% 0.006 230)",
+          "oklch(61% 0.006 230)",
+          "oklch(72% 0.006 230)",
+          "oklch(84% 0.006 230)",
+          "oklch(95% 0.006 230)"
+        ]
+      },
+      "map-paper-shade": {
+        "role": "neutral",
+        "displayName": "Paper Shade",
+        "canonical": "oklch(95.6% 0.01 228)",
+        "tonalRamp": [
+          "oklch(15% 0.01 228)",
+          "oklch(26% 0.01 228)",
+          "oklch(38% 0.01 228)",
+          "oklch(49% 0.01 228)",
+          "oklch(61% 0.01 228)",
+          "oklch(72% 0.01 228)",
+          "oklch(84% 0.01 228)",
+          "oklch(95% 0.01 228)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(22% 0.012 120)",
+        "tonalRamp": [
+          "oklch(15% 0.012 120)",
+          "oklch(26% 0.012 120)",
+          "oklch(38% 0.012 120)",
+          "oklch(49% 0.012 120)",
+          "oklch(61% 0.012 120)",
+          "oklch(72% 0.012 120)",
+          "oklch(84% 0.012 120)",
+          "oklch(95% 0.012 120)"
+        ]
+      },
+      "woodland": {
+        "role": "primary",
+        "displayName": "Woodland Green",
+        "canonical": "oklch(45% 0.1 152)",
+        "tonalRamp": [
+          "oklch(15% 0.1 152)",
+          "oklch(26% 0.1 152)",
+          "oklch(38% 0.1 152)",
+          "oklch(49% 0.1 152)",
+          "oklch(61% 0.1 152)",
+          "oklch(72% 0.1 152)",
+          "oklch(84% 0.1 152)",
+          "oklch(95% 0.1 152)"
+        ]
+      },
+      "cover-orange": {
+        "role": "secondary",
+        "displayName": "Explorer Cover Orange",
+        "canonical": "oklch(73% 0.17 55)",
+        "tonalRamp": [
+          "oklch(15% 0.17 55)",
+          "oklch(26% 0.17 55)",
+          "oklch(38% 0.17 55)",
+          "oklch(49% 0.17 55)",
+          "oklch(61% 0.17 55)",
+          "oklch(72% 0.17 55)",
+          "oklch(84% 0.17 55)",
+          "oklch(95% 0.17 55)"
+        ]
+      },
+      "cover-ink": {
+        "role": "secondary",
+        "displayName": "Cover Ink",
+        "canonical": "oklch(20% 0.03 50)",
+        "tonalRamp": [
+          "oklch(15% 0.03 50)",
+          "oklch(26% 0.03 50)",
+          "oklch(38% 0.03 50)",
+          "oklch(49% 0.03 50)",
+          "oklch(61% 0.03 50)",
+          "oklch(72% 0.03 50)",
+          "oklch(84% 0.03 50)",
+          "oklch(95% 0.03 50)"
+        ]
+      },
+      "contour": {
+        "role": "tertiary",
+        "displayName": "Contour Orange",
+        "canonical": "oklch(60% 0.13 48)",
+        "tonalRamp": [
+          "oklch(15% 0.13 48)",
+          "oklch(26% 0.13 48)",
+          "oklch(38% 0.13 48)",
+          "oklch(49% 0.13 48)",
+          "oklch(61% 0.13 48)",
+          "oklch(72% 0.13 48)",
+          "oklch(84% 0.13 48)",
+          "oklch(95% 0.13 48)"
+        ]
+      },
+      "water": {
+        "role": "tertiary",
+        "displayName": "Water Blue",
+        "canonical": "oklch(50% 0.13 245)",
+        "tonalRamp": [
+          "oklch(15% 0.13 245)",
+          "oklch(26% 0.13 245)",
+          "oklch(38% 0.13 245)",
+          "oklch(49% 0.13 245)",
+          "oklch(61% 0.13 245)",
+          "oklch(72% 0.13 245)",
+          "oklch(84% 0.13 245)",
+          "oklch(95% 0.13 245)"
+        ]
+      },
+      "warning": {
+        "role": "status",
+        "displayName": "Warning",
+        "canonical": "oklch(80% 0.15 85)",
+        "tonalRamp": [
+          "oklch(15% 0.15 85)",
+          "oklch(26% 0.15 85)",
+          "oklch(38% 0.15 85)",
+          "oklch(49% 0.15 85)",
+          "oklch(61% 0.15 85)",
+          "oklch(72% 0.15 85)",
+          "oklch(84% 0.15 85)",
+          "oklch(95% 0.15 85)"
+        ]
+      },
+      "error": {
+        "role": "status",
+        "displayName": "Error",
+        "canonical": "oklch(54% 0.19 27)",
+        "tonalRamp": [
+          "oklch(15% 0.19 27)",
+          "oklch(26% 0.19 27)",
+          "oklch(38% 0.19 27)",
+          "oklch(49% 0.19 27)",
+          "oklch(61% 0.19 27)",
+          "oklch(72% 0.19 27)",
+          "oklch(84% 0.19 27)",
+          "oklch(95% 0.19 27)"
+        ]
+      },
+      "night-paper": {
+        "role": "neutral",
+        "displayName": "Night Paper",
+        "canonical": "oklch(21% 0.016 165)",
+        "tonalRamp": [
+          "oklch(15% 0.016 165)",
+          "oklch(26% 0.016 165)",
+          "oklch(38% 0.016 165)",
+          "oklch(49% 0.016 165)",
+          "oklch(61% 0.016 165)",
+          "oklch(72% 0.016 165)",
+          "oklch(84% 0.016 165)",
+          "oklch(95% 0.016 165)"
+        ]
+      },
+      "night-paper-shade": {
+        "role": "neutral",
+        "displayName": "Night Paper Shade",
+        "canonical": "oklch(25% 0.018 165)",
+        "tonalRamp": [
+          "oklch(15% 0.018 165)",
+          "oklch(26% 0.018 165)",
+          "oklch(38% 0.018 165)",
+          "oklch(49% 0.018 165)",
+          "oklch(61% 0.018 165)",
+          "oklch(72% 0.018 165)",
+          "oklch(84% 0.018 165)",
+          "oklch(95% 0.018 165)"
+        ]
+      },
+      "night-ink": {
+        "role": "neutral",
+        "displayName": "Night Ink",
+        "canonical": "oklch(93% 0.012 120)",
+        "tonalRamp": [
+          "oklch(15% 0.012 120)",
+          "oklch(26% 0.012 120)",
+          "oklch(38% 0.012 120)",
+          "oklch(49% 0.012 120)",
+          "oklch(61% 0.012 120)",
+          "oklch(72% 0.012 120)",
+          "oklch(84% 0.012 120)",
+          "oklch(95% 0.012 120)"
+        ]
+      },
+      "night-woodland": {
+        "role": "primary",
+        "displayName": "Night Woodland",
+        "canonical": "oklch(74% 0.13 150)",
+        "tonalRamp": [
+          "oklch(15% 0.13 150)",
+          "oklch(26% 0.13 150)",
+          "oklch(38% 0.13 150)",
+          "oklch(49% 0.13 150)",
+          "oklch(61% 0.13 150)",
+          "oklch(72% 0.13 150)",
+          "oklch(84% 0.13 150)",
+          "oklch(95% 0.13 150)"
+        ]
+      },
+      "night-woodland-ink": {
+        "role": "primary",
+        "displayName": "Night Woodland Ink",
+        "canonical": "oklch(19% 0.03 155)",
+        "tonalRamp": [
+          "oklch(15% 0.03 155)",
+          "oklch(26% 0.03 155)",
+          "oklch(38% 0.03 155)",
+          "oklch(49% 0.03 155)",
+          "oklch(61% 0.03 155)",
+          "oklch(72% 0.03 155)",
+          "oklch(84% 0.03 155)",
+          "oklch(95% 0.03 155)"
+        ]
+      },
+      "night-cover-orange": {
+        "role": "secondary",
+        "displayName": "Night Cover Orange",
+        "canonical": "oklch(70% 0.16 55)",
+        "tonalRamp": [
+          "oklch(15% 0.16 55)",
+          "oklch(26% 0.16 55)",
+          "oklch(38% 0.16 55)",
+          "oklch(49% 0.16 55)",
+          "oklch(61% 0.16 55)",
+          "oklch(72% 0.16 55)",
+          "oklch(84% 0.16 55)",
+          "oklch(95% 0.16 55)"
+        ]
+      },
+      "night-contour": {
+        "role": "tertiary",
+        "displayName": "Night Contour",
+        "canonical": "oklch(68% 0.12 55)",
+        "tonalRamp": [
+          "oklch(15% 0.12 55)",
+          "oklch(26% 0.12 55)",
+          "oklch(38% 0.12 55)",
+          "oklch(49% 0.12 55)",
+          "oklch(61% 0.12 55)",
+          "oklch(72% 0.12 55)",
+          "oklch(84% 0.12 55)",
+          "oklch(95% 0.12 55)"
+        ]
+      },
+      "night-water": {
+        "role": "tertiary",
+        "displayName": "Night Water",
+        "canonical": "oklch(74% 0.1 240)",
+        "tonalRamp": [
+          "oklch(15% 0.1 240)",
+          "oklch(26% 0.1 240)",
+          "oklch(38% 0.1 240)",
+          "oklch(49% 0.1 240)",
+          "oklch(61% 0.1 240)",
+          "oklch(72% 0.1 240)",
+          "oklch(84% 0.1 240)",
+          "oklch(95% 0.1 240)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Level numeral and wordmark (Barlow Semi Condensed 700)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings with leading icon and ink rule."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Quest titles, level title, inset captions."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions, max 65ch, 80% ink."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Duration, XP meta, tags (italic water blue)."
+      }
+    },
+    "shadows": [],
+    "borders": [
+      {
+        "name": "ink-rule",
+        "value": "1.5px solid var(--color-base-content)",
+        "purpose": "Every container, field, and section heading underline."
+      }
+    ],
+    "backgrounds": [
+      {
+        "name": "kilometre-grid",
+        "value": "96px squares, 1px lines of info at 13% over base-100",
+        "purpose": "Page background on every sheet."
+      },
+      {
+        "name": "contour-field",
+        "value": "mask: url(/contours.svg) intersect linear-gradient(to bottom left, #000 15%, rgb(0 0 0/.12) 70%); fill accent 55% day / 40% night",
+        "purpose": "Summon panel and photo-less completed insets."
+      },
+      {
+        "name": "footpath",
+        "value": "linear-gradient(to bottom, primary 60%, transparent 60%) 2px 10px repeat-y",
+        "purpose": "Dashed route joining waypoints."
+      }
+    ],
+    "focus": {
+      "value": "outline: 2px solid var(--color-info); outline-offset: 2px",
+      "purpose": "Global :focus-visible ring."
+    },
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All motion."
+      },
+      {
+        "name": "survey",
+        "value": "1.6s infinite; opacity .9 to 0, scale .92 to 1.18, origin 87% 15%",
+        "purpose": "Contour pulse while the quest-giver generates."
+      },
+      {
+        "name": "pin-settle",
+        "value": "600ms; translateY(-20px) to 0",
+        "purpose": "New quest pin drop."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: no-preference gate",
+        "purpose": "Both animations are off unless motion is allowed."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ],
+    "themes": {
+      "sheet-day": "default, light",
+      "sheet-night": "prefers-color-scheme: dark"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Woodland go-action: Generate, Accept. One per region.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183 215.51 63.51a12 12 0 0 1 17 17Z\"/></svg>Accept</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:.5rem;height:3rem;padding:0 1.25rem;font:600 1rem/1 Barlow,ui-sans-serif,sans-serif;background:oklch(45% 0.1 152);color:oklch(98.5% 0.006 230);border:1.5px solid oklch(45% 0.1 152);border-radius:.125rem;cursor:pointer;transition:background .15s}.ds-btn-primary:hover{background:oklch(40% 0.1 152)}.ds-btn-primary:focus-visible{outline:2px solid oklch(50% 0.13 245);outline-offset:2px}.ds-btn-primary:active{transform:translateY(1px)}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Ink-ruled secondary action: Save, Add quest, Mark done.",
+      "html": "<button class=\"ds-btn-outline\">Mark done</button>",
+      "css": ".ds-btn-outline{display:inline-flex;align-items:center;gap:.375rem;height:2rem;padding:0 .75rem;font:600 .875rem/1 Barlow,ui-sans-serif,sans-serif;background:transparent;color:oklch(22% 0.012 120);border:1.5px solid oklch(22% 0.012 120);border-radius:.125rem;cursor:pointer;transition:background .15s,color .15s}.ds-btn-outline:hover{background:oklch(22% 0.012 120);color:oklch(98.4% 0.006 230)}.ds-btn-outline:focus-visible{outline:2px solid oklch(50% 0.13 245);outline-offset:2px}"
+    },
+    {
+      "name": "Sheet Box",
+      "kind": "card",
+      "refersTo": "sheet-box",
+      "description": "Flat ink-ruled container on map paper; quest card with pin.",
+      "html": "<article class=\"ds-sheet\"><svg class=\"ds-pin\" width=\"28\" height=\"28\" viewBox=\"0 0 256 256\" fill=\"oklch(73% 0.17 55)\" aria-hidden=\"true\"><path d=\"M128 16a88.1 88.1 0 0 0-88 88c0 75.3 80 132.17 83.41 134.55a8 8 0 0 0 9.18 0C136 236.17 216 179.3 216 104a88.1 88.1 0 0 0-88-88Zm0 56a32 32 0 1 1-32 32 32 32 0 0 1 32-32Z\"/></svg><h3 class=\"ds-sheet-title\">Morning Bike Ride to a Local Park</h3><p class=\"ds-sheet-body\">Ride to a nearby park and spend half an hour drawing the scene in front of you.</p></article>",
+      "css": ".ds-sheet{position:relative;background:oklch(98.4% 0.006 230);color:oklch(22% 0.012 120);border:1.5px solid oklch(22% 0.012 120);border-radius:.25rem;padding:1.25rem 1.25rem 1.25rem 3.5rem}.ds-pin{position:absolute;left:1rem;top:1rem}.ds-sheet-title{margin:0;font:700 1.25rem/1.375 'Barlow Semi Condensed',Barlow,sans-serif}.ds-sheet-body{margin:.375rem 0 0;font:400 1rem/1.5 Barlow,sans-serif;opacity:.8;max-width:65ch}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Ink-ruled field with label above.",
+      "html": "<label class=\"ds-field\"><span>Where are you? <em>(optional)</em></span><input class=\"ds-input\" placeholder=\"Nairobi\"></label>",
+      "css": ".ds-field{display:block;font:500 1rem/1.5 Barlow,sans-serif;color:oklch(22% 0.012 120)}.ds-field em{font-style:normal;font-weight:400;opacity:.7}.ds-input{display:block;width:100%;margin-top:.375rem;height:2.5rem;padding:0 .75rem;font:400 1rem Barlow,sans-serif;background:oklch(98.4% 0.006 230);color:inherit;border:1.5px solid oklch(22% 0.012 120);border-radius:.125rem}.ds-input::placeholder{color:oklch(22% 0.012 120 / .6)}.ds-input:focus-visible{outline:2px solid oklch(50% 0.13 245);outline-offset:2px}"
+    },
+    {
+      "name": "Tags",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Unboxed italic water-blue annotation.",
+      "html": "<ul class=\"ds-tags\"><li>outdoors</li><li>bike</li><li>creative</li></ul>",
+      "css": ".ds-tags{display:flex;flex-wrap:wrap;gap:.25rem .75rem;margin:0;padding:0;list-style:none;font:italic 400 .875rem/1.43 Barlow,sans-serif;color:oklch(50% 0.13 245)}"
+    },
+    {
+      "name": "Scale Bar",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Map scale bar meter for duration and XP; filled blocks alternate ink and paper.",
+      "html": "<span class=\"ds-scale\" role=\"img\" aria-label=\"90 of 200 XP\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i></i><i></i><i></i><i></i><i></i></span>",
+      "css": ".ds-scale{display:inline-flex;width:16rem}.ds-scale i{flex:1;height:.625rem;border-top:1.5px solid oklch(22% 0.012 120 / .25);border-bottom:1.5px solid oklch(22% 0.012 120 / .25)}.ds-scale i:first-child{border-left:1.5px solid oklch(22% 0.012 120)}.ds-scale i:last-child{border-right:1.5px solid oklch(22% 0.012 120 / .25)}.ds-scale i.on{border-color:oklch(22% 0.012 120);background:oklch(98.4% 0.006 230)}.ds-scale i.on:nth-child(odd){background:oklch(22% 0.012 120)}"
+    },
+    {
+      "name": "Waypoint",
+      "kind": "custom",
+      "refersTo": "waypoint-marker",
+      "description": "Numbered woodland marker joined by the dashed footpath.",
+      "html": "<ol class=\"ds-route\"><li><span class=\"ds-wp\">1</span><b>Cook a new meal from scratch</b></li><li><span class=\"ds-wp\">2</span><b>Read for 30 minutes</b></li></ol>",
+      "css": ".ds-route{list-style:none;margin:0;padding:0;font:700 1.25rem/1.375 'Barlow Semi Condensed',Barlow,sans-serif;color:oklch(22% 0.012 120)}.ds-route li{position:relative;display:grid;grid-template-columns:2.25rem 1fr;gap:1rem;align-items:center;padding-bottom:2rem}.ds-route li:not(:last-child)::before{content:'';position:absolute;left:calc(1.125rem - 1px);top:2.5rem;bottom:0;width:2px;background:linear-gradient(to bottom,oklch(45% 0.1 152) 60%,transparent 60%) 0 0/2px 10px repeat-y}.ds-wp{display:grid;place-items:center;width:2.25rem;height:2.25rem;border-radius:9999px;border:1.5px solid oklch(22% 0.012 120);background:oklch(45% 0.1 152);color:oklch(98.5% 0.006 230);font-size:1.125rem}"
+    },
+    {
+      "name": "Cover Band",
+      "kind": "custom",
+      "refersTo": "cover-band",
+      "description": "Explorer-orange identity band with wordmark.",
+      "html": "<header class=\"ds-cover\"><span class=\"ds-mark\">Sidequestar</span><p>Go do something real.</p></header>",
+      "css": ".ds-cover{background:oklch(73% 0.17 55);color:oklch(20% 0.03 50);border-bottom:1.5px solid oklch(22% 0.012 120);padding:2rem 1.25rem}.ds-mark{font:700 3.75rem/1 'Barlow Semi Condensed',Barlow,sans-serif;letter-spacing:-.025em}.ds-cover p{margin:.75rem 0 0;font:600 1.5rem/1.25 'Barlow Semi Condensed',Barlow,sans-serif}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Evening Sheet",
+    "overview": "Every screen is a printed topographic map sheet: cool map-white paper ruled with a faint blue kilometre grid, black ink linework, woodland green for routes and go-actions, contour orange for relief, water blue for annotation, and an Explorer-orange cover band across the top. The person's evening is the territory; quests are pins, the active list is a dashed footpath joining numbered waypoints, and completed quests are inset photo frames.\n\nThe system is flat and drawn, not stacked. Containers are ink-ruled boxes with crisp near-square corners sitting directly on the paper; there is no card elevation. Density is moderate: one primary panel (the summon box on its contour field) and one route column, with secondary forms below. Two themes, day and night, follow `prefers-color-scheme`; night is the same map under a headlamp (deep green-black paper, pale ink), not an inverted palette.\n\nBuilt on Tailwind CSS 4 + daisyUI 5 with two custom themes (`sheet-day`, `sheet-night`); all colour flows through daisyUI roles, so components use stock daisyUI classes re-skinned by the theme.",
+    "keyCharacteristics": [
+      "Cool map-white paper with a 96px faint blue grid on every page.",
+      "1.5px ink rules on every container, input, and section heading.",
+      "Near-square corners (2px fields, 4px boxes); circles only for map symbols.",
+      "Authored contour linework (public/contours.svg) as the one decorative field.",
+      "Barlow Semi Condensed display over Barlow body, tabular numerals throughout.",
+      "Values shown as map scale bars, not progress bars or percentages."
+    ],
+    "rules": [
+      {
+        "name": "The One Ink Per Job Rule",
+        "body": "Green means go or route, cover orange means the sheet's identity, contour orange means relief, blue means annotation. Do not swap jobs to add variety.",
+        "section": "colors"
+      },
+      {
+        "name": "The Paper Holds Rule",
+        "body": "Contour orange is a line and symbol colour. On day paper it reaches only 3.96:1, so it never carries small text; small accent-coloured labels use ink or night theme only.",
+        "section": "colors"
+      },
+      {
+        "name": "The Map Lettering Rule",
+        "body": "Headings, numerals that matter, and names of places-in-the-flow (quest titles, level title) are Semi Condensed; everything you read in a sentence is Barlow. No uppercase tracking labels.",
+        "section": "typography"
+      },
+      {
+        "name": "The Printed Sheet Rule",
+        "body": "Nothing floats. Separation comes from ink rules and paper, never from box-shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do rule every container, field, and section heading in 1.5px ink and keep containers flat.",
+      "Do keep corners at 2px for controls and 4px for boxes; use circles only for map symbols.",
+      "Do express quantities (duration, XP) as scale bars with an accessible label.",
+      "Do draw relief with the authored contour artwork, faded away from text.",
+      "Do define every colour through the two daisyUI themes so day and night stay in step.",
+      "Do keep motion to the survey pulse and the 600ms pin drop, both behind `prefers-reduced-motion: no-preference`."
+    ],
+    "donts": [
+      "Don't add box-shadows or lifted cards; the sheet is printed.",
+      "Don't fake contours with CSS radial-gradient rings; use the vector artwork.",
+      "Don't set small text in day Contour Orange (3.96:1 on paper).",
+      "Don't add uppercase eyebrow labels or kickers above headings.",
+      "Don't use progress bars, percentages, or rings for XP.",
+      "Don't introduce rounded pill cards or large radii."
+    ]
+  }
+}
