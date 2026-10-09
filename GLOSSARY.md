@@ -45,7 +45,7 @@ A single row of optional facts about the user — location and a free-text note 
 _Avoid_: account, user settings
 
 **Interests**:
-The most frequent tags across the user's quests, computed on read. Used to shape generation.
+The most frequent tags across the user's completed quests, computed on read. Used to shape generation. Generated and seed quests don't count, so the model's own tags can't feed back into its prompt.
 _Avoid_: preferences, hobbies
 
 **Seed quest**:

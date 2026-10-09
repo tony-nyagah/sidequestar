@@ -36,7 +36,27 @@ bun install
 bun run dev
 ```
 
-Open http://localhost:4321. The Go API reads `OLLAMA_MODEL` and `PORT`; the frontend reads `GO_API_URL` (defaults to `http://127.0.0.1:8080`).
+Open http://localhost:4321. The API starts even if Ollama isn't running; generation works as soon as Ollama is up, no restart needed.
+
+### Configuration
+
+| Variable       | Where | Default                  | Notes                                                                 |
+| -------------- | ----- | ------------------------ | --------------------------------------------------------------------- |
+| `HOST`         | api   | `127.0.0.1`              | The API has no auth; keep it on localhost.                            |
+| `PORT`         | api   | `8080`                   |                                                                       |
+| `DATA_DIR`     | api   | `data`                   | SQLite database and uploaded photos.                                  |
+| `OLLAMA_MODEL` | api   | `llama3.2:3b`            | Any Ollama model that supports structured outputs.                    |
+| `OLLAMA_HOST`  | api   | `http://127.0.0.1:11434` | Read by the Ollama client.                                            |
+| `GO_API_URL`   | web   | `http://127.0.0.1:8080`  | Read at runtime, so it can differ per deployment.                     |
+| `HOST`         | web   | `127.0.0.1`              | Production server only. Set `0.0.0.0` to use it from your phone on the same network. |
+| `PORT`         | web   | `4321`                   | Production server only (`bun run build && bun start`).                |
+
+### Checks
+
+```bash
+cd api && make check   # sqlc generate, fmt, vet, test
+cd web && bun run check
+```
 
 ## Why open-source AI is the core
 
