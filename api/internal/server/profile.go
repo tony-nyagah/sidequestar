@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
 	"net/http"
 	"sort"
@@ -55,8 +54,7 @@ type updateProfileRequest struct {
 
 func (s *Server) handleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 	var req updateProfileRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON body")
+	if !decodeJSON(w, r, &req) {
 		return
 	}
 	p, err := s.store.Queries().UpdateProfile(r.Context(), store.UpdateProfileParams{
@@ -71,8 +69,10 @@ func (s *Server) handleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"location": p.Location, "note": p.Note})
 }
 
+// interests ranks tags from completed quests only. Counting generated or
+// seeded quests would let the model's own tags feed back into its prompt.
 func (s *Server) interests(ctx context.Context) []string {
-	quests, err := s.store.Queries().ListQuests(ctx)
+	quests, err := s.store.Queries().ListQuestsByStatus(ctx, "completed")
 	if err != nil {
 		return []string{}
 	}

@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -12,6 +11,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/tony-nyagah/sidequestar/api/internal/store"
 	"github.com/tony-nyagah/sidequestar/api/internal/xp"
+)
+
+const (
+	generateTimeout  = 90 * time.Second
+	recentQuestLimit = 10
 )
 
 type generateRequest struct {
@@ -24,8 +28,7 @@ func (s *Server) handleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req generateRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON body")
+	if !decodeJSON(w, r, &req) {
 		return
 	}
 	if strings.TrimSpace(req.Context) == "" {
@@ -33,10 +36,14 @@ func (s *Server) handleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idea, err := s.gen.Generate(r.Context(), s.buildPrompt(r.Context(), strings.TrimSpace(req.Context)))
+	ctx, cancel := context.WithTimeout(r.Context(), generateTimeout)
+	defer cancel()
+
+	prompt := s.buildPrompt(ctx, strings.TrimSpace(req.Context), time.Now())
+	idea, err := s.gen.Generate(ctx, prompt)
 	if err != nil {
 		slog.Error("generate quest", "err", err)
-		writeError(w, http.StatusBadGateway, "could not generate a quest")
+		writeError(w, http.StatusBadGateway, "could not generate a quest; is Ollama running?")
 		return
 	}
 
@@ -51,8 +58,8 @@ func (s *Server) handleGenerate(w http.ResponseWriter, r *http.Request) {
 		DurationBucket: idea.DurationBucket,
 		Source:         "generated",
 		Status:         "generated",
-		Tags:           store.MarshalTags(idea.Tags),
-		CreatedAt:      time.Now().UTC().Format(time.RFC3339),
+		Tags:           store.MarshalTags(normalizeTags(idea.Tags)),
+		CreatedAt:      store.Timestamp(time.Now()),
 	})
 	if err != nil {
 		slog.Error("save generated quest", "err", err)
@@ -62,24 +69,44 @@ func (s *Server) handleGenerate(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, toQuestDTO(q))
 }
 
-func (s *Server) buildPrompt(ctx context.Context, situation string) string {
+func (s *Server) buildPrompt(ctx context.Context, situation string, now time.Time) string {
 	p, _ := s.store.Queries().GetProfile(ctx)
 	interests := s.interests(ctx)
+	recent := s.recentTitles(ctx)
 
 	var b strings.Builder
-	b.WriteString("You are Sidequestar, a quest-giver that nudges one person to do a single real-life thing away from work and school.\n")
-	b.WriteString("Invent ONE concrete, safe, offline sidequest they can actually start today. Be specific and actionable, not generic.\n")
+	b.WriteString("You are Sidequestar, a quest-giver that gets one person off their screen and out into the world.\n")
+	b.WriteString("Invent ONE concrete, safe sidequest they can start today. Strongly prefer something outdoors: walking, nature, parks, trails, gardening, birding, exploring their neighbourhood. Only suggest an indoor quest if their situation clearly rules out going outside.\n")
+	b.WriteString("Be specific and actionable, not generic. The screen should be the shortest part of the experience.\n")
+	fmt.Fprintf(&b, "It is currently %s. Make sure the quest suits the time of day (no hikes after dark).\n", now.Format("Monday 2 January 2006, 15:04"))
 	if p.Location != "" {
-		fmt.Fprintf(&b, "Their location: %s.\n", p.Location)
+		fmt.Fprintf(&b, "Their location: %s. Factor in the likely season and climate there.\n", p.Location)
 	}
 	if p.Note != "" {
 		fmt.Fprintf(&b, "About them: %s.\n", p.Note)
 	}
 	if len(interests) > 0 {
-		fmt.Fprintf(&b, "Things they seem to enjoy: %s.\n", strings.Join(interests, ", "))
+		fmt.Fprintf(&b, "Things they have enjoyed doing: %s.\n", strings.Join(interests, ", "))
+	}
+	if len(recent) > 0 {
+		fmt.Fprintf(&b, "Do NOT repeat or closely copy any of these recent quests: %s.\n", strings.Join(recent, "; "))
 	}
 	fmt.Fprintf(&b, "Their situation right now: %s.\n\n", situation)
-	b.WriteString("Respond with ONLY a JSON object, no markdown fences, matching exactly this shape:\n")
-	b.WriteString(`{"title": string, "description": string, "duration_bucket": one of "under-30m","30-60m","1-2h","half-day","full-day", "tags": [2-4 short lowercase words]}`)
+	b.WriteString("Respond with a JSON object: a short title, a one or two sentence description, a duration_bucket, and 2-4 short lowercase tags.")
 	return b.String()
+}
+
+func (s *Server) recentTitles(ctx context.Context) []string {
+	quests, err := s.store.Queries().ListQuests(ctx)
+	if err != nil {
+		return nil
+	}
+	out := make([]string, 0, recentQuestLimit)
+	for _, q := range quests {
+		if len(out) == recentQuestLimit {
+			break
+		}
+		out = append(out, q.Title)
+	}
+	return out
 }

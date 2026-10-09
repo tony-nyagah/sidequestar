@@ -1,9 +1,10 @@
 package server
 
 import (
+	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
+	"time"
 
 	"github.com/tony-nyagah/sidequestar/api/internal/ollama"
 	"github.com/tony-nyagah/sidequestar/api/internal/store"
@@ -36,22 +37,32 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/quests/{id}/accept", s.handleAcceptQuest)
 	mux.HandleFunc("POST /api/quests/{id}/complete", s.handleCompleteQuest)
 	mux.HandleFunc("DELETE /api/quests/{id}", s.handleDeleteQuest)
+	mux.HandleFunc("GET /api/photos/{name}", s.handleGetPhoto)
 	mux.HandleFunc("GET /api/profile", s.handleGetProfile)
 	mux.HandleFunc("PATCH /api/profile", s.handleUpdateProfile)
 
 	return logRequests(mux)
 }
 
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (r *statusRecorder) WriteHeader(code int) {
+	r.status = code
+	r.ResponseWriter.WriteHeader(code)
+}
+
 func logRequests(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
+		start := time.Now()
+		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(rec, r)
+		slog.Info("request", "method", r.Method, "path", r.URL.Path, "status", rec.status, "dur", time.Since(start))
 	})
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-}
-
-func absPhotoPath(photosDir, name string) string {
-	return filepath.Join(photosDir, name)
 }

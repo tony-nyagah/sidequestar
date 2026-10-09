@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -33,6 +34,14 @@ func Open(path string) (*Store, error) {
 func (s *Store) Close() error { return s.db.Close() }
 
 func (s *Store) Queries() *Queries { return s.q }
+
+// timestampLayout is fixed-width so timestamps sort correctly as text.
+const timestampLayout = "2006-01-02T15:04:05.000000000Z07:00"
+
+// Timestamp formats t (in UTC) for the created_at/completed_at columns.
+func Timestamp(t time.Time) string {
+	return t.UTC().Format(timestampLayout)
+}
 
 func ParseTags(raw string) []string {
 	var tags []string
