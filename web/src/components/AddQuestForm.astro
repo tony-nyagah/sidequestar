@@ -3,28 +3,28 @@ import { Icon } from "astro-icon/components";
 import { DURATION_BUCKETS } from "../lib/api";
 ---
 
-<section class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
-  <div class="mb-4 flex items-center gap-2">
-    <Icon name="ph:plus-circle" class="size-5 text-accent" aria-hidden="true" />
-    <h2 class="font-display text-lg font-bold">Add your own quest</h2>
+<section class="rounded-box border-[1.5px] border-base-content bg-base-100 p-5 sm:p-6">
+  <div class="mb-4 flex items-center gap-2 border-b-[1.5px] border-base-content pb-2">
+    <Icon name="ph:plus-circle-bold" class="size-6 text-accent" aria-hidden="true" />
+    <h2 class="font-display text-2xl font-bold">Add your own quest</h2>
   </div>
 
   <form method="post" action="/api/quests" class="grid gap-3 sm:grid-cols-2">
     <label class="block sm:col-span-2">
-      <span class="mb-1.5 block text-sm font-medium text-base-content/80">Title</span>
+      <span class="mb-1.5 block font-medium">Title</span>
       <input type="text" name="title" required placeholder="Learn three chords on guitar"
-        class="input input-bordered w-full" />
+        class="input w-full border-base-content placeholder:text-base-content/60" />
     </label>
 
     <label class="block sm:col-span-2">
-      <span class="mb-1.5 block text-sm font-medium text-base-content/80">Description</span>
+      <span class="mb-1.5 block font-medium">Description</span>
       <textarea name="description" rows="2" required placeholder="A few words about what to actually do."
-        class="textarea textarea-bordered w-full resize-none"></textarea>
+        class="textarea w-full border-base-content placeholder:text-base-content/60 resize-none"></textarea>
     </label>
 
     <label class="block">
-      <span class="mb-1.5 block text-sm font-medium text-base-content/80">How long will it take?</span>
-      <select name="duration_bucket" class="select select-bordered w-full">
+      <span class="mb-1.5 block font-medium">How long will it take?</span>
+      <select name="duration_bucket" class="select w-full border-base-content">
         {DURATION_BUCKETS.map((b) => (
           <option value={b.value}>{b.label}</option>
         ))}
@@ -32,12 +32,12 @@ import { DURATION_BUCKETS } from "../lib/api";
     </label>
 
     <label class="block">
-      <span class="mb-1.5 block text-sm font-medium text-base-content/80">Tags (comma separated)</span>
-      <input type="text" name="tags" placeholder="music, creative" class="input input-bordered w-full" />
+      <span class="mb-1.5 block font-medium">Tags (comma separated)</span>
+      <input type="text" name="tags" placeholder="music, creative" class="input w-full border-base-content placeholder:text-base-content/60" />
     </label>
 
-    <button type="submit" class="btn btn-outline sm:col-span-2 sm:w-auto sm:justify-self-start">
-      <Icon name="ph:plus" class="size-5" aria-hidden="true" />
+    <button type="submit" class="btn btn-neutral btn-outline sm:col-span-2 sm:w-auto sm:justify-self-start">
+      <Icon name="ph:plus-bold" class="size-5" aria-hidden="true" />
       Add quest
     </button>
   </form>

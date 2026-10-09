@@ -1,0 +1,33 @@
+---
+// A map scale bar: alternating ink and paper blocks. Filled length carries the value.
+interface Props {
+  filled: number;
+  total: number;
+  size?: "sm" | "lg";
+  label?: string;
+}
+
+const { filled, total, size = "sm", label } = Astro.props;
+const blocks = Array.from({ length: total }, (_, i) => i < filled);
+const block = size === "lg" ? "h-2.5 w-full" : "h-1.5 w-3";
+---
+
+<span
+  class:list={["inline-flex items-center", size === "lg" ? "w-full" : "gap-0"]}
+  role="img"
+  aria-label={label}
+>
+  {
+    blocks.map((on, i) => (
+      <span
+        class:list={[
+          block,
+          "border-y-[1.5px] first:border-l-[1.5px] last:border-r-[1.5px]",
+          on
+            ? ["border-base-content", i % 2 === 0 ? "bg-base-content" : "bg-base-100"]
+            : "border-base-content/25 bg-transparent",
+        ]}
+      />
+    ))
+  }
+</span>

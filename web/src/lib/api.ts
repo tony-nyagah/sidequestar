@@ -61,3 +61,7 @@ export async function getProfile(): Promise<Profile> {
   if (!res.ok) throw new Error(`get profile: ${res.status}`);
   return res.json();
 }
+
+export function durationIndex(bucket: string): number {
+  return Math.max(0, DURATION_BUCKETS.findIndex((b) => b.value === bucket));
+}

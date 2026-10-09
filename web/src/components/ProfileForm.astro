@@ -9,17 +9,17 @@ interface Props {
 const { profile } = Astro.props;
 ---
 
-<section class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
-  <div class="mb-4 flex items-center gap-2">
-    <Icon name="ph:user-circle" class="size-5 text-info" aria-hidden="true" />
-    <h2 class="font-display text-lg font-bold">About you</h2>
+<section class="rounded-box border-[1.5px] border-base-content bg-base-100 p-5 sm:p-6">
+  <div class="mb-4 flex items-center gap-2 border-b-[1.5px] border-base-content pb-2">
+    <Icon name="ph:user-circle-bold" class="size-6 text-info" aria-hidden="true" />
+    <h2 class="font-display text-2xl font-bold">About you</h2>
   </div>
 
   {
     profile.interests.length > 0 && (
       <div class="mb-4 flex flex-wrap gap-1.5">
         {profile.interests.map((tag) => (
-          <span class="badge badge-secondary badge-outline">{tag}</span>
+          <span class="badge rounded-field border-[1.5px] border-base-content bg-base-200 italic">{tag}</span>
         ))}
       </div>
     )
@@ -27,23 +27,23 @@ const { profile } = Astro.props;
 
   <form method="post" action="/api/profile" class="grid gap-3">
     <label class="block">
-      <span class="mb-1.5 block text-sm font-medium text-base-content/80">
-        Where are you? <span class="font-normal text-base-content/50">(optional)</span>
+      <span class="mb-1.5 block font-medium">
+        Where are you? <span class="font-normal text-base-content/70">(optional)</span>
       </span>
       <input type="text" name="location" value={profile.location} placeholder="Nairobi"
-        class="input input-bordered w-full" />
+        class="input w-full border-base-content placeholder:text-base-content/60" />
     </label>
 
     <label class="block">
-      <span class="mb-1.5 block text-sm font-medium text-base-content/80">
-        Anything the quest-giver should know? <span class="font-normal text-base-content/50">(optional)</span>
+      <span class="mb-1.5 block font-medium">
+        Anything the quest-giver should know? <span class="font-normal text-base-content/70">(optional)</span>
       </span>
       <textarea name="note" rows="2" placeholder="I'm recovering from a cold, keep it easy."
-        class="textarea textarea-bordered w-full resize-none">{profile.note}</textarea>
+        class="textarea w-full border-base-content placeholder:text-base-content/60 resize-none">{profile.note}</textarea>
     </label>
 
-    <button type="submit" class="btn btn-outline sm:w-auto sm:justify-self-start">
-      <Icon name="ph:check" class="size-5" aria-hidden="true" />
+    <button type="submit" class="btn btn-neutral btn-outline sm:w-auto sm:justify-self-start">
+      <Icon name="ph:check-bold" class="size-5" aria-hidden="true" />
       Save
     </button>
   </form>

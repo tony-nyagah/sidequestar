@@ -1,0 +1,15 @@
+---
+import ScaleBar from "./ScaleBar.astro";
+import { DURATION_BUCKETS, durationIndex, durationLabel } from "../lib/api";
+
+interface Props {
+  bucket: string;
+}
+
+const { bucket } = Astro.props;
+---
+
+<span class="inline-flex items-center gap-2 text-sm font-medium">
+  <ScaleBar filled={durationIndex(bucket) + 1} total={DURATION_BUCKETS.length} />
+  <span>{durationLabel(bucket)}</span>
+</span>
