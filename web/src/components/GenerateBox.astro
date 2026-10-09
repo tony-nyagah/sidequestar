@@ -2,28 +2,50 @@
 import { Icon } from "astro-icon/components";
 ---
 
-<section class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
-  <div class="mb-4 flex items-center gap-2">
-    <Icon name="ph:sparkle" class="size-5 text-secondary" aria-hidden="true" />
-    <h2 class="font-display text-lg font-bold">Summon a quest</h2>
-  </div>
+<section
+  id="summon"
+  class="contour-field rounded-box border-[1.5px] border-base-content p-5 sm:p-7"
+  aria-labelledby="summon-title"
+>
+  <h2 id="summon-title" class="flex items-center gap-2 font-display text-2xl font-bold sm:text-3xl">
+    <Icon name="ph:path-bold" class="size-7 text-primary" aria-hidden="true" />
+    Summon a quest
+  </h2>
 
-  <form method="post" action="/api/quests/generate" class="space-y-3">
+  <form method="post" action="/api/quests/generate" class="mt-4 space-y-3">
     <label class="block">
-      <span class="mb-1.5 block text-sm font-medium text-base-content/80">
-        Tell the quest-giver about your day
-      </span>
+      <span class="mb-1.5 block font-medium">Tell the quest-giver about your day</span>
       <textarea
         name="context"
         rows="3"
         required
         placeholder="I have two free hours this evening and I want to be outside, somewhere I can walk to."
-        class="textarea textarea-bordered w-full resize-none"
+        class="textarea w-full resize-none border-base-content bg-base-100 text-base placeholder:text-base-content/60"
       ></textarea>
     </label>
-    <button type="submit" class="btn btn-primary w-full sm:w-auto">
-      <Icon name="ph:magic-wand" class="size-5" aria-hidden="true" />
-      Generate a quest
-    </button>
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <button type="submit" class="group btn btn-primary btn-lg w-full sm:w-auto">
+        <span class="contents group-aria-busy:hidden">
+          <Icon name="ph:magic-wand-bold" class="size-5" aria-hidden="true" />
+          Generate a quest
+        </span>
+        <span class="hidden items-center gap-2 group-aria-busy:inline-flex">
+          <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+          The quest-giver is thinking…
+        </span>
+      </button>
+      <p class="text-sm text-base-content/70">Runs on your machine. Can take up to half a minute.</p>
+    </div>
   </form>
 </section>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('form[action="/api/quests/generate"]').forEach((form) => {
+    form.addEventListener("submit", () => {
+      const button = form.querySelector("button")!;
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      form.closest(".contour-field")?.setAttribute("aria-busy", "true");
+    });
+  });
+</script>

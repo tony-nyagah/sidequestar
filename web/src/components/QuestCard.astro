@@ -1,6 +1,7 @@
 ---
 import { Icon } from "astro-icon/components";
-import { durationLabel } from "../lib/api";
+import Duration from "./Duration.astro";
+import Tags from "./Tags.astro";
 import type { Quest } from "../lib/api";
 
 interface Props {
@@ -10,27 +11,18 @@ interface Props {
 const { quest } = Astro.props;
 ---
 
-<article class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
-  <div class="flex items-start justify-between gap-3">
-    <h3 class="font-display text-lg font-bold leading-snug">{quest.title}</h3>
-    <span class="badge badge-neutral shrink-0">
-      <Icon name="ph:clock" class="size-3.5" aria-hidden="true" />
-      {durationLabel(quest.duration_bucket)}
-    </span>
+<article class="pin-drop relative rounded-box border-[1.5px] border-base-content bg-base-100 p-5 pl-14">
+  <Icon
+    name="ph:map-pin-fill"
+    class="pin absolute left-4 top-4 size-7 text-secondary drop-shadow-[0_2px_1px_rgb(0_0_0/0.25)]"
+    aria-hidden="true"
+  />
+  <h3 class="font-display text-xl font-bold leading-snug sm:text-2xl">{quest.title}</h3>
+  <p class="mt-1.5 max-w-[65ch] text-base-content/80">{quest.description}</p>
+  <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+    <Duration bucket={quest.duration_bucket} />
+    <Tags tags={quest.tags} />
   </div>
-
-  <p class="mt-2 text-base-content/75">{quest.description}</p>
-
-  {
-    quest.tags.length > 0 && (
-      <div class="mt-3 flex flex-wrap gap-1.5">
-        {quest.tags.map((tag) => (
-          <span class="badge badge-outline">{tag}</span>
-        ))}
-      </div>
-    )
-  }
-
   <div class="mt-4">
     <slot />
   </div>
