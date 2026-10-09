@@ -1,0 +1,3 @@
+# Quest generation uses a local open-weight model (Ollama + llama3.2:3b)
+
+The app's core — turning a user's situation into a concrete quest — is done by an open-weight model running locally through Ollama, not by a hosted API. We picked this over a closed generation API (for example DeepSeek or OpenAI) because it runs offline, costs nothing, and keeps the user's situation and quest history on their own machine. The trade-off is slower, smaller-model output quality; we accept that because the loop (describe your day, get a quest, leave) is short, and the model is swappable without changing app code.
