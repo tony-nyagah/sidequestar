@@ -366,3 +366,14 @@ func TestSummaryUpdatesAfterCompletionAndOnDemand(t *testing.T) {
 		t.Error("refresh prompt includes the model's previous output")
 	}
 }
+
+func TestQuestPromptForbidsInventedPlaces(t *testing.T) {
+	s := newTestServer(t)
+	gen := &captureGen{}
+	s.SetGenerator(gen)
+	c := register(t, s.Handler(), "tony")
+	c.do(http.MethodPost, "/api/quests/generate", `{"context":"free evening"}`)
+	if !strings.Contains(gen.prompt, "Never name a specific place") {
+		t.Fatal("quest prompt no longer tells the model not to invent places")
+	}
+}
