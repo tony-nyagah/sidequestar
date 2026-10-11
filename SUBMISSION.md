@@ -8,7 +8,11 @@ You finish work, you know there has to be more to life than another evening on a
 
 You tell it your situation ("two hours this evening, want to be outside"), a model running on your own machine writes one specific quest, and you go do it. Finish it and you get XP and levels. Add a photo and you get a bit more. The whole thing on screen takes about twenty seconds, and then you're out the door.
 
+![The Sidequestar home page: the summon box, a fresh quest ("Limuru Evening Bike Ride: explore a new forest trail on two wheels"), and the route of accepted quests](https://raw.githubusercontent.com/tony-nyagah/sidequestar/main/screenshots/home.png)
+
 It also gets to know you. Every time you finish a quest, the model rewrites a short summary of what you seem to enjoy and when you're free, and that summary shapes the next quest. I didn't want that to be a black box, so the profile page shows, word for word, what the model is told about you, and you can edit the summary if it gets something wrong. Everyone on the machine has their own account, so housemates get their own quests, XP and summaries.
+
+![The profile page: the exact lines sent to the model with every quest, the summary it wrote, and the XP log](https://raw.githubusercontent.com/tony-nyagah/sidequestar/main/screenshots/profile.png)
 
 Yesterday I went cycling in Tigoni with a group: 33.64 km, 3 hours 26 minutes and 532 m of climbing. That ride wasn't a Sidequestar quest, but it's the kind of thing I want more of, and its Strava card is the completion photo in the demo.
 
@@ -35,6 +39,8 @@ Most of the work went into getting a 3B model to behave. A few things I ran into
 - If Ollama isn't running, or the model isn't pulled yet, the app says so and gives you the command to fix it, instead of "something went wrong". With a local model those are easy mistakes to make, and I made both while building this.
 
 The design is a topographic map sheet: an orange map-cover header, contour lines behind the quest box, your active quests as a footpath between numbered waypoints, and finished ones as photo insets. Light and dark mode follow your system.
+
+![Dark mode: a fresh quest, the completed Tigoni ride as a photo inset, and the footpath route](https://raw.githubusercontent.com/tony-nyagah/sidequestar/main/screenshots/dark.png)
 
 ## Why Does Open Innovation Matter?
 
