@@ -42,6 +42,7 @@ Open http://localhost:4321 and create an account. The frontend is also served on
 | `MODEL` (make) / `OLLAMA_MODEL` | API | `llama3.2:3b` |
 | `DATA_DIR` | API | `api/data` (database and photos) |
 | `PORT` | API | `8080` |
+| `API_HOST` | API | `127.0.0.1` (only this machine; the frontend is what phones reach) |
 | `GO_API_URL` | frontend | `http://127.0.0.1:8080` |
 
 For example, `make dev MODEL=gemma2:9b` uses a different local model.

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -38,7 +39,9 @@ func main() {
 	srv.SetGenerator(gen)
 	slog.Info("generation configured", "model", gen.Model())
 
-	addr := ":" + port
+	// Only the frontend talks to the API, so by default it's reachable from this
+	// machine alone. Set API_HOST=0.0.0.0 to serve a frontend running elsewhere.
+	addr := net.JoinHostPort(getenv("API_HOST", "127.0.0.1"), port)
 	slog.Info("sidequestar api listening", "addr", addr)
 	if err := http.ListenAndServe(addr, srv.Handler()); err != nil {
 		slog.Error("server stopped", "err", err)
