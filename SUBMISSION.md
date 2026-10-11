@@ -20,6 +20,8 @@ Yesterday I went cycling in Tigoni with a group: 33.64 km, 3 hours 26 minutes an
 
 ## Demo
 
+**Try it: [sidequestar.nyagah.me](https://sidequestar.nyagah.me).** Create an account and ask for a quest. It runs the same open model on a small 4-core ARM server, so a quest takes about 10 to 25 seconds. If you'd rather keep everything on your own machine, `make dev` runs the whole thing locally.
+
 {% youtube leNfHCF8VTE %}
 
 In the demo I create an account, ask for a quest on a Saturday morning with my bike and half a day free, finish it with a photo, and then open the profile page to see what the model knows. The waits for the model are sped up.

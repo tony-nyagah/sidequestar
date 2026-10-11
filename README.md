@@ -4,7 +4,7 @@
 
 Sidequestar gives you small things to do away from work and school, and XP for doing them. You describe your day, a model running on your own machine suggests one concrete quest, and you go do it. Over time it learns what you enjoy and writes that down where you can read it and correct it.
 
-Built for the [Hacktoberfest Open-Source AI Challenge, Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05).
+Built for the [Hacktoberfest Open-Source AI Challenge, Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05). Try it at [sidequestar.nyagah.me](https://sidequestar.nyagah.me), or run it on your own machine (below) to keep everything there.
 
 ## How it works
 
@@ -15,7 +15,7 @@ Built for the [Hacktoberfest Open-Source AI Challenge, Week 1: Touch Grass](http
 
 Everyone gets their own account. Your profile page shows your XP, where it came from, and exactly what the quest-giver is told about you: your location, a note in your own words, and a short summary the model writes from the quests you finish. The summary updates after every quest you complete. You can ask for a fresh one at any time or edit it yourself, and the model keeps your edits.
 
-Accounts, quests, XP, photos and summaries all live in one SQLite file on the machine running the app, and none of it is sent anywhere else.
+Accounts, quests, XP, photos and summaries all live in one SQLite file on the machine running the app, and none of it is sent anywhere else. On the hosted site that machine is a small server I run; locally, it's yours.
 
 ## Stack
 
@@ -47,6 +47,10 @@ If you used Sidequestar before it had accounts, register yourself first: the fir
 | `TRUST_PROXY` | frontend | unset (set it behind a reverse proxy that sends the visitor's address in `X-Client-IP`, so sign-in limits see real addresses) |
 
 For example, `make dev MODEL=gemma2:9b` uses a different local model.
+
+### Deploying
+
+`deploy/compose.yml` runs Ollama, the API, the frontend and a nightly backup of the database and photos as one Compose project behind a reverse proxy. `docker compose -f deploy/compose.yml up -d --build`, then pull the model once with `docker exec sqme-ollama ollama pull llama3.2:3b`. The frontend expects the proxy to send the visitor's address in `X-Client-IP`.
 
 ### Security notes
 
