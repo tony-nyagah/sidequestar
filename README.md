@@ -28,10 +28,11 @@ Requires Go 1.26+, [Ollama](https://ollama.com), and Bun.
 
 ```bash
 make setup   # once: installs frontend dependencies and pulls llama3.2:3b
-make dev     # starts Ollama (if needed), the API on :8080, and the frontend on :4321
+make serve   # use the app: production build on :4321, reachable from your phone
+make dev     # work on the code: live reload on :4321
 ```
 
-Open http://localhost:4321 and create an account. The frontend is also served on your local network, so you can open the **Network** address it prints (for example `http://192.168.1.20:4321`) on your phone to complete quests and add photos. Ctrl-C stops everything. `make test` runs the Go tests and the Astro type check.
+Open http://localhost:4321 and create an account. To use it from your phone, run `make serve` and open one of the addresses it prints (for example `http://192.168.1.20:4321`) on the same Wi-Fi, or the laptop's Tailscale address from anywhere. Use `http://`, not `https://`. Some routers and guest networks block devices from reaching each other; Tailscale gets around that. Ctrl-C stops everything. `make test` runs the Go tests and the Astro type check.
 
 **Upgrading from before accounts?** The first account you register inherits your existing quests, XP, and profile. Register yourself first.
 
