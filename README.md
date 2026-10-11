@@ -1,5 +1,7 @@
 # Sidequestar
 
+**The main quest can wait.** One small escape at a time.
+
 A local-first app that hands you small real-life quests — things to do away from work and school — and rewards you with XP for doing them. You describe your day, a local open-weight model gives you one concrete quest, you go do it, and you earn XP for actually showing up.
 
 Built for the [Hacktoberfest Open-Source AI Challenge, Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05).

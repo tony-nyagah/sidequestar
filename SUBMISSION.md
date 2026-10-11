@@ -2,6 +2,8 @@
 
 ## What I Built
 
+**The main quest can wait.** One small escape at a time.
+
 Sidequestar is a local-first app that hands you one small real-life quest at a time — things to do away from work and school — and gives you XP for actually doing them. You tell it your situation ("two hours this evening, want to be outside"), a local open-weight model writes one specific quest, you go do it, and you earn XP and levels for showing up. Add a photo for bonus XP.
 
 It's for anyone who finishes a workday and realises there's more to life than the screen but doesn't know where to start. The screen is the shortest part of the experience: about twenty seconds to get a mission, then you leave.
