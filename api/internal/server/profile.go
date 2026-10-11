@@ -140,7 +140,7 @@ func (s *Server) handleRefreshSummary(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), generateTimeout)
 	defer cancel()
-	if err := s.refreshSummary(ctx, currentUser(r).ID); err != nil {
+	if err := s.refreshSummary(ctx, currentUser(r).ID, true); err != nil {
 		slog.Error("refresh summary", "err", err)
 		s.writeModelError(w, err, "The quest-giver couldn't write a summary. Try again.")
 		return

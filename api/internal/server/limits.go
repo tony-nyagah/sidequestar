@@ -2,12 +2,18 @@ package server
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
+
+// errModelBusy means enough people are already waiting for the model that a new
+// request would most likely time out in the queue.
+var errModelBusy = errors.New("model busy")
 
 // window counts events per key over a sliding window. It lives in memory, which is
 // fine for a single server: a restart forgets recent attempts, nothing more.
@@ -74,7 +80,11 @@ type limits struct {
 	loginByIP   *window // failed sign-ins per address
 	register    *window // new accounts per address
 	quests      *window // generated quests per user
+	photos      *window // photo uploads per user
+	photoQuota  int64   // bytes of photos each account may keep
 	model       chan struct{}
+	waiting     atomic.Int32 // requests queued for the model
+	maxWaiting  int32
 }
 
 func newLimits() *limits {
@@ -83,13 +93,24 @@ func newLimits() *limits {
 		loginByIP:   newWindow(20, 15*time.Minute),
 		register:    newWindow(5, time.Hour),
 		quests:      newWindow(30, time.Hour),
+		photos:      newWindow(20, time.Hour),
+		photoQuota:  200 << 20,
 		// One model call at a time: on a CPU, two at once are each slower than one after the other.
-		model: make(chan struct{}, 1),
+		model:      make(chan struct{}, 1),
+		maxWaiting: 3,
 	}
 }
 
-// useModel waits for the model to be free, or gives up when ctx ends.
-func (l *limits) useModel(ctx context.Context) (release func(), err error) {
+// useModel waits for the model to be free, or gives up when ctx ends. A request
+// someone is waiting on (interactive) is turned away at once with errModelBusy when
+// the queue is already full, instead of piling up and timing out; background work
+// always waits its turn.
+func (l *limits) useModel(ctx context.Context, interactive bool) (release func(), err error) {
+	if interactive && l.waiting.Load() >= l.maxWaiting {
+		return nil, errModelBusy
+	}
+	l.waiting.Add(1)
+	defer l.waiting.Add(-1)
 	select {
 	case l.model <- struct{}{}:
 		return func() { <-l.model }, nil

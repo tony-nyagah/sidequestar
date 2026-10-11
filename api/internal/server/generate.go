@@ -47,7 +47,7 @@ func (s *Server) handleGenerate(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), generateTimeout)
 	defer cancel()
 	prompt := s.buildPrompt(ctx, userID, strings.TrimSpace(req.Context))
-	release, err := s.limits.useModel(ctx)
+	release, err := s.limits.useModel(ctx, true)
 	if err != nil {
 		s.writeModelError(w, err, "The quest-giver is busy. Try again in a minute.")
 		return
@@ -90,6 +90,9 @@ func (s *Server) writeModelError(w http.ResponseWriter, err error, fallback stri
 		writeError(w, http.StatusServiceUnavailable, "Ollama isn't running. Start it with `ollama serve`, then try again.")
 	case errors.Is(err, ollama.ErrModelMissing):
 		writeError(w, http.StatusServiceUnavailable, fmt.Sprintf("The model isn't downloaded yet. Run `ollama pull %s`, then try again.", s.gen.Model()))
+	case errors.Is(err, errModelBusy):
+		w.Header().Set("Retry-After", "60")
+		writeError(w, http.StatusServiceUnavailable, "The quest-giver is busy with other people's quests. Try again in a minute.")
 	case errors.Is(err, context.DeadlineExceeded):
 		writeError(w, http.StatusGatewayTimeout, "The quest-giver took too long to answer. Try again.")
 	default:

@@ -17,7 +17,7 @@ const summaryHistory = 25
 
 // refreshSummary asks the model to rewrite what it has learned about the person
 // from their own words and their quests, keeping any corrections they made.
-func (s *Server) refreshSummary(ctx context.Context, userID string) error {
+func (s *Server) refreshSummary(ctx context.Context, userID string, interactive bool) error {
 	q := s.store.Queries()
 	p, err := q.GetProfile(ctx, userID)
 	if err != nil {
@@ -28,7 +28,7 @@ func (s *Server) refreshSummary(ctx context.Context, userID string) error {
 		return err
 	}
 
-	release, err := s.limits.useModel(ctx)
+	release, err := s.limits.useModel(ctx, interactive)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (s *Server) refreshSummaryInBackground(userID string) {
 		defer s.background.Done()
 		ctx, cancel := context.WithTimeout(context.Background(), generateTimeout)
 		defer cancel()
-		if err := s.refreshSummary(ctx, userID); err != nil {
+		if err := s.refreshSummary(ctx, userID, false); err != nil {
 			slog.Warn("background summary refresh", "user", userID, "err", err)
 		}
 	}()

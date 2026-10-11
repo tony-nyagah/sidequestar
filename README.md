@@ -54,7 +54,7 @@ For example, `make dev MODEL=gemma2:9b` uses a different local model.
 
 ### Security notes
 
-Passwords are stored as bcrypt hashes. Sessions are random tokens, stored only as hashes and kept in 30-day HttpOnly cookies (Secure when served over HTTPS). Sign-in is limited to 5 failed attempts per username and 20 per address every 15 minutes, and an address can create 5 accounts an hour. The model handles one request at a time, and each account can ask for 30 quests an hour, so one person can't keep the CPU busy for everyone else.
+Passwords are stored as bcrypt hashes. Sessions are random tokens, stored only as hashes and kept in 30-day HttpOnly cookies (Secure when served over HTTPS). Sign-in is limited to 5 failed attempts per username and 20 per address every 15 minutes, and an address can create 5 accounts an hour. The model handles one request at a time with at most three waiting, and when the queue is full a new request is told the quest-giver is busy instead of waiting to time out. Each account can ask for 30 quests an hour and upload 20 photos an hour, and keep up to 200 MB of photos, so one person (or script) can't hog the CPU or fill the disk.
 
 You can change your password or delete your account (quests, photos, summary and all) from the profile page. There's no email, so if someone forgets their password, whoever runs the server resets it:
 

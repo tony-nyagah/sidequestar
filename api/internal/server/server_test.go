@@ -11,7 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/tony-nyagah/sidequestar/api/internal/ollama"
 	"github.com/tony-nyagah/sidequestar/api/internal/store"
@@ -516,4 +518,94 @@ func TestQuestsPerHourCap(t *testing.T) {
 	if w := c.do(http.MethodPost, "/api/quests/generate", `{"context":"free evening"}`); w.Code != http.StatusTooManyRequests {
 		t.Fatalf("31st quest = %d, want 429", w.Code)
 	}
+}
+
+func TestPhotoLimits(t *testing.T) {
+	s := newTestServer(t)
+	c := register(t, s.Handler(), "amina")
+	for i := 0; i < 20; i++ {
+		if w := c.completeWithPhoto(c.createQuest("Walk").ID, "walk.jpg"); w.Code != http.StatusOK {
+			t.Fatalf("photo %d = %d %s", i, w.Code, w.Body.String())
+		}
+	}
+	if w := c.completeWithPhoto(c.createQuest("Walk").ID, "walk.jpg"); w.Code != http.StatusTooManyRequests {
+		t.Fatalf("21st photo in an hour = %d, want 429", w.Code)
+	}
+	// Completing without a photo still works.
+	if w := c.do(http.MethodPost, "/api/quests/"+c.createQuest("Walk").ID+"/complete", ""); w.Code != http.StatusOK {
+		t.Fatalf("complete without photo = %d", w.Code)
+	}
+
+	// Quota: each test photo is 3 bytes, so a 5-byte quota fits one and refuses the next.
+	s2 := newTestServer(t)
+	s2.limits.photoQuota = 5
+	c2 := register(t, s2.Handler(), "brian")
+	if w := c2.completeWithPhoto(c2.createQuest("Sketch").ID, "a.jpg"); w.Code != http.StatusOK {
+		t.Fatalf("first photo = %d", w.Code)
+	}
+	quest := c2.createQuest("Sketch")
+	if w := c2.completeWithPhoto(quest.ID, "b.jpg"); w.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("over quota = %d, want 413", w.Code)
+	}
+	var q questDTO
+	if w := c2.do(http.MethodPost, "/api/quests/"+quest.ID+"/complete", ""); w.Code != http.StatusOK {
+		t.Fatalf("refused photo should leave the quest completable, got %d", w.Code)
+	} else {
+		c2.decode(w, &q)
+		if q.PhotoPath != "" {
+			t.Fatal("refused photo was attached anyway")
+		}
+	}
+}
+
+// blockingGen holds every call until release is closed.
+type blockingGen struct{ release chan struct{} }
+
+func (b blockingGen) Generate(ctx context.Context, _ string) (ollama.GeneratedQuest, error) {
+	select {
+	case <-b.release:
+		return ollama.GeneratedQuest{Title: "Walk", Description: "Go", DurationBucket: "under-30m"}, nil
+	case <-ctx.Done():
+		return ollama.GeneratedQuest{}, ctx.Err()
+	}
+}
+
+func (b blockingGen) Complete(context.Context, string) (string, error) { return "", nil }
+
+func (b blockingGen) Model() string { return "test-model" }
+
+func TestBusyModelFailsFast(t *testing.T) {
+	s := newTestServer(t)
+	gen := blockingGen{release: make(chan struct{})}
+	s.SetGenerator(gen)
+	c := register(t, s.Handler(), "amina")
+
+	// One request on the model, three queued behind it.
+	var wg sync.WaitGroup
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			c.do(http.MethodPost, "/api/quests/generate", `{"context":"free evening"}`)
+		}()
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for s.limits.waiting.Load() < 3 {
+		if time.Now().After(deadline) {
+			t.Fatalf("queue never filled (waiting = %d)", s.limits.waiting.Load())
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	start := time.Now()
+	w := c.do(http.MethodPost, "/api/quests/generate", `{"context":"free evening"}`)
+	if w.Code != http.StatusServiceUnavailable || !strings.Contains(w.Body.String(), "busy") {
+		t.Fatalf("5th request = %d %s, want 503 busy", w.Code, w.Body.String())
+	}
+	if time.Since(start) > time.Second {
+		t.Fatalf("busy answer took %v; it should be immediate", time.Since(start))
+	}
+
+	close(gen.release)
+	wg.Wait()
 }

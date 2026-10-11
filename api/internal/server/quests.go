@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -18,7 +19,11 @@ import (
 
 const maxPhotoBytes = 20 << 20
 
-var errBadPhotoType = errors.New("unsupported photo type")
+var (
+	errBadPhotoType  = errors.New("unsupported photo type")
+	errTooManyPhotos = errors.New("photo upload limit reached")
+	errPhotoQuota    = errors.New("photo storage quota reached")
+)
 
 var allowedPhotoExts = map[string]bool{
 	".jpg": true, ".jpeg": true, ".png": true, ".webp": true, ".gif": true, ".heic": true,
@@ -129,7 +134,7 @@ func (s *Server) handleCompleteQuest(w http.ResponseWriter, r *http.Request) {
 	var photoPath string
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
 		r.Body = http.MaxBytesReader(w, r.Body, maxPhotoBytes)
-		photoPath, err = s.savePhoto(r)
+		photoPath, err = s.savePhoto(r, userID)
 		if err != nil {
 			var tooBig *http.MaxBytesError
 			switch {
@@ -137,6 +142,10 @@ func (s *Server) handleCompleteQuest(w http.ResponseWriter, r *http.Request) {
 				writeError(w, http.StatusRequestEntityTooLarge, "photo is too large (max 20 MB)")
 			case errors.Is(err, errBadPhotoType):
 				writeError(w, http.StatusBadRequest, "photo must be a JPEG, PNG, WebP, GIF, or HEIC image")
+			case errors.Is(err, errTooManyPhotos):
+				tooMany(w, "That's 20 photos in the last hour. Mark this one done without a photo, or try again later.")
+			case errors.Is(err, errPhotoQuota):
+				writeError(w, http.StatusRequestEntityTooLarge, "Your photos are using all 200 MB of your space. Mark this one done without a photo.")
 			default:
 				slog.Error("save photo", "err", err)
 				writeError(w, http.StatusInternalServerError, "could not save photo")
@@ -156,6 +165,9 @@ func (s *Server) handleCompleteQuest(w http.ResponseWriter, r *http.Request) {
 		XpAwarded:   toNullInt(int64(awarded)),
 	})
 	if err != nil {
+		if photoPath != "" {
+			_ = os.Remove(s.photoPathFor(photoPath))
+		}
 		slog.Error("complete quest", "err", err)
 		writeError(w, http.StatusInternalServerError, "could not complete quest")
 		return
@@ -174,7 +186,9 @@ func (s *Server) handleDeleteQuest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (s *Server) savePhoto(r *http.Request) (string, error) {
+// savePhoto stores the uploaded photo, after checking the account's hourly upload
+// limit and storage quota so a script can't fill the server's disk.
+func (s *Server) savePhoto(r *http.Request, userID string) (string, error) {
 	file, header, err := r.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile {
@@ -188,6 +202,16 @@ func (s *Server) savePhoto(r *http.Request) (string, error) {
 	if !allowedPhotoExts[ext] {
 		return "", errBadPhotoType
 	}
+	if s.limits.photos.full(userID) {
+		return "", errTooManyPhotos
+	}
+	used, err := s.photoBytes(r.Context(), userID)
+	if err != nil {
+		return "", err
+	}
+	if used+header.Size > s.limits.photoQuota {
+		return "", errPhotoQuota
+	}
 	name := uuid.NewString() + ext
 	dst, err := os.Create(s.photoPathFor(name))
 	if err != nil {
@@ -195,9 +219,26 @@ func (s *Server) savePhoto(r *http.Request) (string, error) {
 	}
 	defer dst.Close()
 	if _, err := io.Copy(dst, file); err != nil {
+		_ = os.Remove(dst.Name())
 		return "", err
 	}
+	s.limits.photos.add(userID)
 	return name, nil
+}
+
+// photoBytes is how much disk the account's photos take up now.
+func (s *Server) photoBytes(ctx context.Context, userID string) (int64, error) {
+	names, err := s.store.Queries().ListPhotoPaths(ctx, userID)
+	if err != nil {
+		return 0, err
+	}
+	var total int64
+	for _, n := range names {
+		if info, err := os.Stat(s.photoPathFor(n.String)); err == nil {
+			total += info.Size()
+		}
+	}
+	return total, nil
 }
 
 func (s *Server) photoPathFor(name string) string {
