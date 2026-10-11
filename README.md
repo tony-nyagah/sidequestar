@@ -44,7 +44,7 @@ If you used Sidequestar before it had accounts, register yourself first: the fir
 | `PORT` | API | `8080` |
 | `API_HOST` | API | `127.0.0.1` (only this machine; the frontend talks to it) |
 | `GO_API_URL` | frontend | `http://127.0.0.1:8080` |
-| `TRUST_PROXY` | frontend | unset (set it behind a reverse proxy so sign-in limits see real visitor addresses) |
+| `TRUST_PROXY` | frontend | unset (set it behind a reverse proxy that sends the visitor's address in `X-Client-IP`, so sign-in limits see real addresses) |
 
 For example, `make dev MODEL=gemma2:9b` uses a different local model.
 

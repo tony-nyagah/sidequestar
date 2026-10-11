@@ -9,9 +9,10 @@ const PUBLIC = ["/login", "/register", "/api/auth/login", "/api/auth/register"];
 // HttpOnly cookie and is checked against the Go API on each request.
 export const onRequest = defineMiddleware(async (context, next) => {
   // The API rate-limits sign-ins by address. Behind a reverse proxy the socket address
-  // is the proxy's, so trust its X-Forwarded-For only when TRUST_PROXY says there is one.
-  const forwarded = (process.env as Record<string, string | undefined>).TRUST_PROXY ? context.request.headers.get("x-forwarded-for") : null;
-  context.locals.clientIP = forwarded?.split(",")[0].trim() || context.clientAddress;
+  // is the proxy's, so with TRUST_PROXY set, use the X-Client-IP header the proxy sets
+  // (Caddy fills it from Cloudflare's CF-Connecting-IP, see the README).
+  const behindProxy = Boolean((process.env as Record<string, string | undefined>).TRUST_PROXY);
+  context.locals.clientIP = (behindProxy && context.request.headers.get("x-client-ip")?.trim()) || context.clientAddress;
 
   const { pathname } = context.url;
   if (PUBLIC.includes(pathname) || pathname.startsWith("/_astro/") || pathname === "/contours.svg") {

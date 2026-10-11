@@ -1,0 +1,70 @@
+# Sidequestar at sidequestar.nyagah.me. Runs as its own Compose project next to
+# the shared infra stack: only sqme-web joins infra_web, where Caddy reaches it.
+name: sidequestar-me
+
+services:
+  sqme-ollama:
+    image: ollama/ollama:0.34.4
+    container_name: sqme-ollama
+    restart: unless-stopped
+    environment:
+      # Free the RAM between bursts; the server runs other projects too.
+      OLLAMA_KEEP_ALIVE: 10m
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+    volumes:
+      - ollama:/root/.ollama
+    networks: [app]
+    mem_limit: 3g
+    logging: &logging
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  sqme-api:
+    build: ../api
+    container_name: sqme-api
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: http://sqme-ollama:11434
+      OLLAMA_MODEL: llama3.2:3b
+    volumes:
+      - data:/data
+    networks: [app]
+    depends_on: [sqme-ollama]
+    logging: *logging
+
+  sqme-web:
+    build: ../web
+    container_name: sqme-web
+    restart: unless-stopped
+    environment:
+      GO_API_URL: http://sqme-api:8080
+      # Caddy sets X-Client-IP from Cloudflare's CF-Connecting-IP.
+      TRUST_PROXY: "1"
+    networks: [app, web]
+    depends_on: [sqme-api]
+    logging: *logging
+
+  # Nightly copy of the database and photos, keeping two weeks.
+  sqme-backup:
+    image: alpine:3
+    container_name: sqme-backup
+    restart: unless-stopped
+    volumes:
+      - data:/data:ro
+      - backups:/backups
+      - ./backup.sh:/backup.sh:ro
+    entrypoint: ["/bin/sh", "-c", "apk add --no-cache sqlite >/dev/null && echo '15 3 * * * /bin/sh /backup.sh' | crontab - && crond -f -l 8"]
+    networks: [app]
+    logging: *logging
+
+volumes:
+  data:
+  ollama:
+  backups:
+
+networks:
+  app: {}
+  web:
+    external: true
+    name: infra_web
