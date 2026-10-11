@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
-import { GO_API_URL } from "../../../../lib/api";
+import { goFetch } from "../../../../lib/api";
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ params, redirect }) => {
-  const res = await fetch(`${GO_API_URL}/api/quests/${params.id}/accept`, {
+export const POST: APIRoute = async ({ params, redirect, locals }) => {
+  const res = await goFetch(locals, `/api/quests/${params.id}/accept`, {
     method: "POST",
   });
 

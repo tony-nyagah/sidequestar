@@ -8,6 +8,7 @@ interface Props {
 }
 
 const { profile } = Astro.props;
+const user = Astro.locals.user;
 
 const segments = 10;
 const filled = profile
@@ -16,6 +17,23 @@ const filled = profile
 ---
 
 <header class="border-b-[1.5px] border-base-content bg-secondary text-secondary-content">
+  {
+    user && (
+      <div class="border-b-[1.5px] border-base-content/20">
+        <div class="mx-auto flex max-w-6xl items-center justify-end gap-3 px-5 py-1.5 text-sm">
+          <span>
+            Signed in as <strong class="font-semibold">{user.username}</strong>
+          </span>
+          <form method="post" action="/api/auth/logout">
+            <button type="submit" class="inline-flex items-center gap-1 font-semibold underline underline-offset-4">
+              <Icon name="ph:sign-out-bold" class="size-4" aria-hidden="true" />
+              Sign out
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
   <div class="mx-auto grid max-w-6xl gap-6 px-5 py-6 sm:py-8 md:grid-cols-[1fr_auto] md:items-end">
     <div>
       <a href="/" class="inline-flex items-center gap-2.5">
@@ -30,9 +48,10 @@ const filled = profile
 
     {
       profile && (
-        <section
-          aria-label="Your level"
-          class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 rounded-box border-[1.5px] border-base-content bg-base-100 p-4 text-base-content md:w-80"
+        <a
+          href="/profile"
+          aria-label={`Your profile: level ${profile.level}, ${profile.title}, ${profile.xp_total} XP`}
+          class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 rounded-box border-[1.5px] border-base-content bg-base-100 p-4 text-base-content transition-transform hover:-translate-y-0.5 md:w-80"
         >
           <p class="row-span-2 font-display text-6xl font-bold leading-none tabular-nums sm:text-7xl">
             <span class="sr-only">Level </span>{profile.level}
@@ -53,7 +72,11 @@ const filled = profile
               <span>Level {profile.level + 1}</span>
             </div>
           </div>
-        </section>
+          <span class="col-span-2 inline-flex items-center gap-1 text-sm font-semibold underline underline-offset-4">
+            Your profile
+            <Icon name="ph:arrow-right-bold" class="size-4" aria-hidden="true" />
+          </span>
+        </a>
       )
     }
   </div>

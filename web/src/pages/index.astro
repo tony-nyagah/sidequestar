@@ -5,7 +5,6 @@ import GenerateBox from "../components/GenerateBox.astro";
 import QuestCard from "../components/QuestCard.astro";
 import Waypoint from "../components/Waypoint.astro";
 import AddQuestForm from "../components/AddQuestForm.astro";
-import ProfileForm from "../components/ProfileForm.astro";
 import { Icon } from "astro-icon/components";
 import { listQuests, getProfile } from "../lib/api";
 import type { Profile, Quest } from "../lib/api";
@@ -18,10 +17,10 @@ let apiDown = false;
 
 try {
   [profile, active, generated, completed] = await Promise.all([
-    getProfile(),
-    listQuests("active"),
-    listQuests("generated"),
-    listQuests("completed"),
+    getProfile(Astro.locals),
+    listQuests(Astro.locals, "active"),
+    listQuests(Astro.locals, "generated"),
+    listQuests(Astro.locals, "completed"),
   ]);
 } catch {
   apiDown = true;
@@ -166,9 +165,8 @@ const heading = "flex items-center gap-2 border-b-[1.5px] border-base-content pb
       </section>
     </div>
 
-    <div class="mt-14 grid gap-10 lg:grid-cols-2">
+    <div class="mt-14 max-w-2xl">
       <AddQuestForm />
-      {profile && <ProfileForm profile={profile} />}
     </div>
   </main>
 </Layout>

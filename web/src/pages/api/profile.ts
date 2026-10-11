@@ -1,21 +1,23 @@
 import type { APIRoute } from "astro";
-import { GO_API_URL } from "../../lib/api";
+import { goFetch } from "../../lib/api";
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect, locals }) => {
   const form = await request.formData();
 
-  const res = await fetch(`${GO_API_URL}/api/profile`, {
+  const res = await goFetch(locals, `/api/profile`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      location: String(form.get("location") ?? ""),
-      note: String(form.get("note") ?? ""),
-    }),
+    // Only send what this form had, so the about form and the summary form don't overwrite each other.
+    body: JSON.stringify(
+      Object.fromEntries(
+        ["location", "note", "summary"].filter((k) => form.has(k)).map((k) => [k, String(form.get(k))]),
+      ),
+    ),
   });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    return redirect(`/?error=${encodeURIComponent(body.error ?? "Could not update profile")}`);
+    return redirect(`/profile?error=${encodeURIComponent(body.error ?? "Could not update profile")}`);
   }
-  return redirect("/");
+  return redirect("/profile");
 };

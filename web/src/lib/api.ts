@@ -20,9 +20,17 @@ export interface Quest {
   completed_at?: string;
 }
 
+export interface User {
+  id: string;
+  username: string;
+}
+
 export interface Profile {
+  username: string;
   location: string;
   note: string;
+  summary: string;
+  summary_updated_at?: string;
   interests: string[];
   xp_total: number;
   completed_count: number;
@@ -30,6 +38,8 @@ export interface Profile {
   xp_into_level: number;
   xp_needed: number;
   title: string;
+  known_facts: string[];
+  model: string;
 }
 
 export const DURATION_BUCKETS: { value: DurationBucket; label: string }[] = [
@@ -47,17 +57,21 @@ export function durationLabel(bucket: string): string {
 export const GO_API_URL: string =
   import.meta.env.GO_API_URL ?? "http://127.0.0.1:8080";
 
-export async function listQuests(status?: QuestStatus): Promise<Quest[]> {
-  const url = status
-    ? `${GO_API_URL}/api/quests?status=${status}`
-    : `${GO_API_URL}/api/quests`;
-  const res = await fetch(url);
+// goFetch calls the Go API as the signed-in user (middleware puts their token in locals).
+export function goFetch(locals: App.Locals, path: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  if (locals.token) headers.set("Authorization", `Bearer ${locals.token}`);
+  return fetch(`${GO_API_URL}${path}`, { ...init, headers });
+}
+
+export async function listQuests(locals: App.Locals, status?: QuestStatus): Promise<Quest[]> {
+  const res = await goFetch(locals, status ? `/api/quests?status=${status}` : "/api/quests");
   if (!res.ok) throw new Error(`list quests: ${res.status}`);
   return res.json();
 }
 
-export async function getProfile(): Promise<Profile> {
-  const res = await fetch(`${GO_API_URL}/api/profile`);
+export async function getProfile(locals: App.Locals): Promise<Profile> {
+  const res = await goFetch(locals, "/api/profile");
   if (!res.ok) throw new Error(`get profile: ${res.status}`);
   return res.json();
 }

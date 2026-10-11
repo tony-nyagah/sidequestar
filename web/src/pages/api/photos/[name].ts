@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
-import { GO_API_URL } from "../../../lib/api";
+import { goFetch } from "../../../lib/api";
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ params }) => {
-  const res = await fetch(`${GO_API_URL}/api/photos/${encodeURIComponent(params.name ?? "")}`);
+export const GET: APIRoute = async ({ params, locals }) => {
+  const res = await goFetch(locals, `/api/photos/${encodeURIComponent(params.name ?? "")}`);
   return new Response(res.body, {
     status: res.status,
     headers: {

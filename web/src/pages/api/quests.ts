@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
-import { GO_API_URL } from "../../lib/api";
+import { goFetch } from "../../lib/api";
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request, redirect, locals }) => {
   const form = await request.formData();
 
   const tags = String(form.get("tags") ?? "")
@@ -9,7 +9,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     .map((t) => t.trim())
     .filter(Boolean);
 
-  const res = await fetch(`${GO_API_URL}/api/quests`, {
+  const res = await goFetch(locals, `/api/quests`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

@@ -1,0 +1,84 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Props {
+  mode: "login" | "register";
+}
+
+const { mode } = Astro.props;
+const error = Astro.url.searchParams.get("error");
+const username = Astro.url.searchParams.get("username") ?? "";
+const isLogin = mode === "login";
+---
+
+<section
+  aria-labelledby="auth-title"
+  class="contour-field mx-auto max-w-md rounded-box border-[1.5px] border-base-content p-6 sm:p-8"
+>
+  <h1 id="auth-title" class="font-display text-3xl font-bold sm:text-4xl">
+    {isLogin ? "Sign in" : "Create your account"}
+  </h1>
+  <p class="mt-2 text-base-content/80">
+    {
+      isLogin
+        ? "Pick up your route where you left it."
+        : "Your quests, XP and what the quest-giver learns about you stay in your own account."
+    }
+  </p>
+
+  {
+    error && (
+      <div role="alert" class="alert mt-5 rounded-box border-[1.5px] border-base-content bg-error text-error-content">
+        <Icon name="ph:x-circle-bold" class="size-6" aria-hidden="true" />
+        <span>{error}</span>
+      </div>
+    )
+  }
+
+  <form method="post" action={`/api/auth/${mode}`} class="mt-6 grid gap-4">
+    <label class="block">
+      <span class="mb-1.5 block font-medium">Username</span>
+      <input
+        type="text"
+        name="username"
+        value={username}
+        required
+        minlength={3}
+        maxlength={32}
+        pattern="[A-Za-z0-9_\-]+"
+        autocomplete="username"
+        autocapitalize="none"
+        spellcheck="false"
+        class="input w-full border-base-content bg-base-100"
+      />
+      {!isLogin && <span class="mt-1 block text-sm text-base-content/70">3 to 32 letters, numbers, dashes or underscores.</span>}
+    </label>
+    <label class="block">
+      <span class="mb-1.5 block font-medium">Password</span>
+      <input
+        type="password"
+        name="password"
+        required
+        minlength={isLogin ? undefined : 8}
+        maxlength={72}
+        autocomplete={isLogin ? "current-password" : "new-password"}
+        class="input w-full border-base-content bg-base-100"
+      />
+      {!isLogin && <span class="mt-1 block text-sm text-base-content/70">At least 8 characters.</span>}
+    </label>
+    <button type="submit" class="btn btn-primary btn-lg mt-2">
+      <Icon name={isLogin ? "ph:sign-in-bold" : "ph:user-plus-bold"} class="size-5" aria-hidden="true" />
+      {isLogin ? "Sign in" : "Create account"}
+    </button>
+  </form>
+
+  <p class="mt-6 text-base-content/80">
+    {
+      isLogin ? (
+        <>New here? <a href="/register" class="font-semibold underline">Create an account</a></>
+      ) : (
+        <>Already have an account? <a href="/login" class="font-semibold underline">Sign in</a></>
+      )
+    }
+  </p>
+</section>
