@@ -54,8 +54,12 @@ export function durationLabel(bucket: string): string {
   return DURATION_BUCKETS.find((b) => b.value === bucket)?.label ?? bucket;
 }
 
+// Read at runtime: import.meta.env is baked in at build time, which would make
+// GO_API_URL impossible to change for a built frontend.
 export const GO_API_URL: string =
-  import.meta.env.GO_API_URL ?? "http://127.0.0.1:8080";
+  (process.env as Record<string, string | undefined>).GO_API_URL ??
+  import.meta.env.GO_API_URL ??
+  "http://127.0.0.1:8080";
 
 // goFetch calls the Go API as the signed-in user (middleware puts their token in locals).
 export function goFetch(locals: App.Locals, path: string, init: RequestInit = {}): Promise<Response> {
