@@ -27,17 +27,11 @@ var seeds = []seedQuest{
 	{"Offer an hour of help", "Give an hour to someone nearby or a local cause.", "1-2h", []string{"giving", "community"}},
 }
 
-func (s *Store) SeedIfEmpty(ctx context.Context) error {
-	count, err := s.q.CountQuests(ctx)
-	if err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
+func seedFor(ctx context.Context, q *Queries, userID string) error {
 	for _, sq := range seeds {
-		_, err := s.q.CreateQuest(ctx, CreateQuestParams{
+		_, err := q.CreateQuest(ctx, CreateQuestParams{
 			ID:             uuid.NewString(),
+			UserID:         userID,
 			Title:          sq.Title,
 			Description:    sq.Description,
 			DurationBucket: sq.DurationBucket,

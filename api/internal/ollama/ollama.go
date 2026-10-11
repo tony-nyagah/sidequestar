@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/ollama/ollama/api"
 )
@@ -29,6 +30,7 @@ type GeneratedQuest struct {
 
 type Generator interface {
 	Generate(ctx context.Context, prompt string) (GeneratedQuest, error)
+	Complete(ctx context.Context, prompt string) (string, error)
 	Model() string
 }
 
@@ -71,18 +73,43 @@ func (c *Client) Generate(ctx context.Context, prompt string) (GeneratedQuest, e
 		return json.Unmarshal([]byte(resp.Message.Content), &out)
 	})
 	if err != nil {
-		var statusErr api.StatusError
-		var netErr *net.OpError
-		switch {
-		case errors.As(err, &statusErr) && statusErr.StatusCode == http.StatusNotFound:
-			return GeneratedQuest{}, fmt.Errorf("%w: %w", ErrModelMissing, err)
-		case errors.As(err, &netErr):
-			return GeneratedQuest{}, fmt.Errorf("%w: %w", ErrUnreachable, err)
-		}
-		return GeneratedQuest{}, fmt.Errorf("ollama chat: %w", err)
+		return GeneratedQuest{}, classify(err)
 	}
 	if out.Title == "" {
 		return GeneratedQuest{}, errors.New("model returned no quest")
 	}
 	return out, nil
+}
+
+// Complete returns the model's plain-text answer to a single prompt. It samples
+// at a low temperature: it writes about real people, so literal beats creative.
+func (c *Client) Complete(ctx context.Context, prompt string) (string, error) {
+	stream := false
+	req := &api.ChatRequest{
+		Model:    c.model,
+		Stream:   &stream,
+		Messages: []api.Message{{Role: "user", Content: prompt}},
+		Options:  map[string]any{"temperature": 0.2},
+	}
+	var out strings.Builder
+	err := c.api.Chat(ctx, req, func(resp api.ChatResponse) error {
+		out.WriteString(resp.Message.Content)
+		return nil
+	})
+	if err != nil {
+		return "", classify(err)
+	}
+	return strings.TrimSpace(out.String()), nil
+}
+
+func classify(err error) error {
+	var statusErr api.StatusError
+	var netErr *net.OpError
+	switch {
+	case errors.As(err, &statusErr) && statusErr.StatusCode == http.StatusNotFound:
+		return fmt.Errorf("%w: %w", ErrModelMissing, err)
+	case errors.As(err, &netErr):
+		return fmt.Errorf("%w: %w", ErrUnreachable, err)
+	}
+	return fmt.Errorf("ollama chat: %w", err)
 }

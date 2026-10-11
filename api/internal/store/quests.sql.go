@@ -11,12 +11,18 @@ import (
 )
 
 const acceptQuest = `-- name: AcceptQuest :one
-UPDATE quests SET status = 'active' WHERE id = ? AND status = 'generated'
-RETURNING id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at
+UPDATE quests SET status = 'active'
+WHERE id = ?1 AND user_id = ?2 AND status = 'generated'
+RETURNING id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at, user_id
 `
 
-func (q *Queries) AcceptQuest(ctx context.Context, id string) (Quest, error) {
-	row := q.db.QueryRowContext(ctx, acceptQuest, id)
+type AcceptQuestParams struct {
+	ID     string
+	UserID string
+}
+
+func (q *Queries) AcceptQuest(ctx context.Context, arg AcceptQuestParams) (Quest, error) {
+	row := q.db.QueryRowContext(ctx, acceptQuest, arg.ID, arg.UserID)
 	var i Quest
 	err := row.Scan(
 		&i.ID,
@@ -30,15 +36,25 @@ func (q *Queries) AcceptQuest(ctx context.Context, id string) (Quest, error) {
 		&i.XpAwarded,
 		&i.CreatedAt,
 		&i.CompletedAt,
+		&i.UserID,
 	)
 	return i, err
 }
 
+const claimUnownedQuests = `-- name: ClaimUnownedQuests :exec
+UPDATE quests SET user_id = ?1 WHERE user_id = ''
+`
+
+func (q *Queries) ClaimUnownedQuests(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, claimUnownedQuests, userID)
+	return err
+}
+
 const completeQuest = `-- name: CompleteQuest :one
 UPDATE quests
-SET status = 'completed', completed_at = ?, photo_path = ?, xp_awarded = ?
-WHERE id = ? AND status = 'active'
-RETURNING id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at
+SET status = 'completed', completed_at = ?1, photo_path = ?2, xp_awarded = ?3
+WHERE id = ?4 AND user_id = ?5 AND status = 'active'
+RETURNING id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at, user_id
 `
 
 type CompleteQuestParams struct {
@@ -46,6 +62,7 @@ type CompleteQuestParams struct {
 	PhotoPath   sql.NullString
 	XpAwarded   sql.NullInt64
 	ID          string
+	UserID      string
 }
 
 func (q *Queries) CompleteQuest(ctx context.Context, arg CompleteQuestParams) (Quest, error) {
@@ -54,6 +71,7 @@ func (q *Queries) CompleteQuest(ctx context.Context, arg CompleteQuestParams) (Q
 		arg.PhotoPath,
 		arg.XpAwarded,
 		arg.ID,
+		arg.UserID,
 	)
 	var i Quest
 	err := row.Scan(
@@ -68,36 +86,37 @@ func (q *Queries) CompleteQuest(ctx context.Context, arg CompleteQuestParams) (Q
 		&i.XpAwarded,
 		&i.CreatedAt,
 		&i.CompletedAt,
+		&i.UserID,
 	)
 	return i, err
 }
 
 const countCompleted = `-- name: CountCompleted :one
-SELECT COUNT(*) AS count FROM quests WHERE status = 'completed'
+SELECT COUNT(*) AS count FROM quests WHERE user_id = ?1 AND status = 'completed'
 `
 
-func (q *Queries) CountCompleted(ctx context.Context) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countCompleted)
+func (q *Queries) CountCompleted(ctx context.Context, userID string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countCompleted, userID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const countQuests = `-- name: CountQuests :one
-SELECT COUNT(*) AS count FROM quests
+SELECT COUNT(*) AS count FROM quests WHERE user_id = ?1
 `
 
-func (q *Queries) CountQuests(ctx context.Context) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countQuests)
+func (q *Queries) CountQuests(ctx context.Context, userID string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countQuests, userID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const createQuest = `-- name: CreateQuest :one
-INSERT INTO quests (id, title, description, duration_bucket, source, status, tags, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at
+INSERT INTO quests (id, title, description, duration_bucket, source, status, tags, created_at, user_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at, user_id
 `
 
 type CreateQuestParams struct {
@@ -109,6 +128,7 @@ type CreateQuestParams struct {
 	Status         string
 	Tags           string
 	CreatedAt      string
+	UserID         string
 }
 
 func (q *Queries) CreateQuest(ctx context.Context, arg CreateQuestParams) (Quest, error) {
@@ -121,6 +141,7 @@ func (q *Queries) CreateQuest(ctx context.Context, arg CreateQuestParams) (Quest
 		arg.Status,
 		arg.Tags,
 		arg.CreatedAt,
+		arg.UserID,
 	)
 	var i Quest
 	err := row.Scan(
@@ -135,36 +156,36 @@ func (q *Queries) CreateQuest(ctx context.Context, arg CreateQuestParams) (Quest
 		&i.XpAwarded,
 		&i.CreatedAt,
 		&i.CompletedAt,
+		&i.UserID,
 	)
 	return i, err
 }
 
 const deleteQuest = `-- name: DeleteQuest :exec
-DELETE FROM quests WHERE id = ?
+DELETE FROM quests WHERE id = ?1 AND user_id = ?2
 `
 
-func (q *Queries) DeleteQuest(ctx context.Context, id string) error {
-	_, err := q.db.ExecContext(ctx, deleteQuest, id)
+type DeleteQuestParams struct {
+	ID     string
+	UserID string
+}
+
+func (q *Queries) DeleteQuest(ctx context.Context, arg DeleteQuestParams) error {
+	_, err := q.db.ExecContext(ctx, deleteQuest, arg.ID, arg.UserID)
 	return err
 }
 
-const getProfile = `-- name: GetProfile :one
-SELECT id, location, note FROM profile WHERE id = 1
+const getQuest = `-- name: GetQuest :one
+SELECT id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at, user_id FROM quests WHERE id = ?1 AND user_id = ?2
 `
 
-func (q *Queries) GetProfile(ctx context.Context) (Profile, error) {
-	row := q.db.QueryRowContext(ctx, getProfile)
-	var i Profile
-	err := row.Scan(&i.ID, &i.Location, &i.Note)
-	return i, err
+type GetQuestParams struct {
+	ID     string
+	UserID string
 }
 
-const getQuest = `-- name: GetQuest :one
-SELECT id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at FROM quests WHERE id = ?
-`
-
-func (q *Queries) GetQuest(ctx context.Context, id string) (Quest, error) {
-	row := q.db.QueryRowContext(ctx, getQuest, id)
+func (q *Queries) GetQuest(ctx context.Context, arg GetQuestParams) (Quest, error) {
+	row := q.db.QueryRowContext(ctx, getQuest, arg.ID, arg.UserID)
 	var i Quest
 	err := row.Scan(
 		&i.ID,
@@ -178,16 +199,17 @@ func (q *Queries) GetQuest(ctx context.Context, id string) (Quest, error) {
 		&i.XpAwarded,
 		&i.CreatedAt,
 		&i.CompletedAt,
+		&i.UserID,
 	)
 	return i, err
 }
 
 const listQuests = `-- name: ListQuests :many
-SELECT id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at FROM quests ORDER BY created_at DESC
+SELECT id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at, user_id FROM quests WHERE user_id = ?1 ORDER BY created_at DESC
 `
 
-func (q *Queries) ListQuests(ctx context.Context) ([]Quest, error) {
-	rows, err := q.db.QueryContext(ctx, listQuests)
+func (q *Queries) ListQuests(ctx context.Context, userID string) ([]Quest, error) {
+	rows, err := q.db.QueryContext(ctx, listQuests, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -207,6 +229,7 @@ func (q *Queries) ListQuests(ctx context.Context) ([]Quest, error) {
 			&i.XpAwarded,
 			&i.CreatedAt,
 			&i.CompletedAt,
+			&i.UserID,
 		); err != nil {
 			return nil, err
 		}
@@ -222,11 +245,16 @@ func (q *Queries) ListQuests(ctx context.Context) ([]Quest, error) {
 }
 
 const listQuestsByStatus = `-- name: ListQuestsByStatus :many
-SELECT id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at FROM quests WHERE status = ? ORDER BY created_at DESC
+SELECT id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at, user_id FROM quests WHERE user_id = ?1 AND status = ?2 ORDER BY created_at DESC
 `
 
-func (q *Queries) ListQuestsByStatus(ctx context.Context, status string) ([]Quest, error) {
-	rows, err := q.db.QueryContext(ctx, listQuestsByStatus, status)
+type ListQuestsByStatusParams struct {
+	UserID string
+	Status string
+}
+
+func (q *Queries) ListQuestsByStatus(ctx context.Context, arg ListQuestsByStatusParams) ([]Quest, error) {
+	rows, err := q.db.QueryContext(ctx, listQuestsByStatus, arg.UserID, arg.Status)
 	if err != nil {
 		return nil, err
 	}
@@ -246,6 +274,7 @@ func (q *Queries) ListQuestsByStatus(ctx context.Context, status string) ([]Ques
 			&i.XpAwarded,
 			&i.CreatedAt,
 			&i.CompletedAt,
+			&i.UserID,
 		); err != nil {
 			return nil, err
 		}
@@ -260,30 +289,30 @@ func (q *Queries) ListQuestsByStatus(ctx context.Context, status string) ([]Ques
 	return items, nil
 }
 
-const totalCompletedXp = `-- name: TotalCompletedXp :one
-SELECT CAST(COALESCE(SUM(xp_awarded), 0) AS INTEGER) AS total FROM quests WHERE status = 'completed'
+const photoBelongsTo = `-- name: PhotoBelongsTo :one
+SELECT COUNT(*) AS count FROM quests WHERE photo_path = ?1 AND user_id = ?2
 `
 
-func (q *Queries) TotalCompletedXp(ctx context.Context) (int64, error) {
-	row := q.db.QueryRowContext(ctx, totalCompletedXp)
+type PhotoBelongsToParams struct {
+	PhotoPath sql.NullString
+	UserID    string
+}
+
+func (q *Queries) PhotoBelongsTo(ctx context.Context, arg PhotoBelongsToParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, photoBelongsTo, arg.PhotoPath, arg.UserID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const totalCompletedXp = `-- name: TotalCompletedXp :one
+SELECT CAST(COALESCE(SUM(xp_awarded), 0) AS INTEGER) AS total
+FROM quests WHERE user_id = ?1 AND status = 'completed'
+`
+
+func (q *Queries) TotalCompletedXp(ctx context.Context, userID string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, totalCompletedXp, userID)
 	var total int64
 	err := row.Scan(&total)
 	return total, err
-}
-
-const updateProfile = `-- name: UpdateProfile :one
-UPDATE profile SET location = ?, note = ? WHERE id = 1
-RETURNING id, location, note
-`
-
-type UpdateProfileParams struct {
-	Location string
-	Note     string
-}
-
-func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (Profile, error) {
-	row := q.db.QueryRowContext(ctx, updateProfile, arg.Location, arg.Note)
-	var i Profile
-	err := row.Scan(&i.ID, &i.Location, &i.Note)
-	return i, err
 }

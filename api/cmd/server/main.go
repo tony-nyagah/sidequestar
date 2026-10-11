@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -28,11 +27,6 @@ func main() {
 		os.Exit(1)
 	}
 	defer st.Close()
-
-	if err := st.SeedIfEmpty(context.Background()); err != nil {
-		slog.Error("seed quests", "err", err)
-		os.Exit(1)
-	}
 
 	srv := server.New(st, filepath.Join(dataDir, "photos"))
 

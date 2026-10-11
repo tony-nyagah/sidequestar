@@ -9,17 +9,29 @@ import (
 )
 
 type Querier interface {
-	AcceptQuest(ctx context.Context, id string) (Quest, error)
+	AcceptQuest(ctx context.Context, arg AcceptQuestParams) (Quest, error)
+	ClaimUnownedQuests(ctx context.Context, userID string) error
 	CompleteQuest(ctx context.Context, arg CompleteQuestParams) (Quest, error)
-	CountCompleted(ctx context.Context) (int64, error)
-	CountQuests(ctx context.Context) (int64, error)
+	CountCompleted(ctx context.Context, userID string) (int64, error)
+	CountQuests(ctx context.Context, userID string) (int64, error)
+	CountUsers(ctx context.Context) (int64, error)
+	CreateProfile(ctx context.Context, arg CreateProfileParams) error
 	CreateQuest(ctx context.Context, arg CreateQuestParams) (Quest, error)
-	DeleteQuest(ctx context.Context, id string) error
-	GetProfile(ctx context.Context) (Profile, error)
-	GetQuest(ctx context.Context, id string) (Quest, error)
-	ListQuests(ctx context.Context) ([]Quest, error)
-	ListQuestsByStatus(ctx context.Context, status string) ([]Quest, error)
-	TotalCompletedXp(ctx context.Context) (int64, error)
+	CreateSession(ctx context.Context, arg CreateSessionParams) error
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteExpiredSessions(ctx context.Context, expiresAt string) error
+	DeleteQuest(ctx context.Context, arg DeleteQuestParams) error
+	DeleteSession(ctx context.Context, tokenHash string) error
+	GetProfile(ctx context.Context, userID string) (Profile, error)
+	GetQuest(ctx context.Context, arg GetQuestParams) (Quest, error)
+	GetSessionUser(ctx context.Context, arg GetSessionUserParams) (User, error)
+	GetUserByUsername(ctx context.Context, username string) (User, error)
+	ListQuests(ctx context.Context, userID string) ([]Quest, error)
+	ListQuestsByStatus(ctx context.Context, arg ListQuestsByStatusParams) ([]Quest, error)
+	PhotoBelongsTo(ctx context.Context, arg PhotoBelongsToParams) (int64, error)
+	SaveEditedSummary(ctx context.Context, arg SaveEditedSummaryParams) error
+	SaveGeneratedSummary(ctx context.Context, arg SaveGeneratedSummaryParams) error
+	TotalCompletedXp(ctx context.Context, userID string) (int64, error)
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (Profile, error)
 }
 

@@ -9,9 +9,12 @@ import (
 )
 
 type Profile struct {
-	ID       int64
-	Location string
-	Note     string
+	UserID           string
+	Location         string
+	Note             string
+	Summary          string
+	SummaryUpdatedAt sql.NullString
+	SummaryUserEdit  string
 }
 
 type Quest struct {
@@ -26,4 +29,18 @@ type Quest struct {
 	XpAwarded      sql.NullInt64
 	CreatedAt      string
 	CompletedAt    sql.NullString
+	UserID         string
+}
+
+type Session struct {
+	TokenHash string
+	UserID    string
+	ExpiresAt string
+}
+
+type User struct {
+	ID           string
+	Username     string
+	PasswordHash string
+	CreatedAt    string
 }

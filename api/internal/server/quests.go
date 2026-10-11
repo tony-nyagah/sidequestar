@@ -26,13 +26,14 @@ var allowedPhotoExts = map[string]bool{
 
 func (s *Server) handleListQuests(w http.ResponseWriter, r *http.Request) {
 	status := r.URL.Query().Get("status")
+	userID := currentUser(r).ID
 
 	var list []store.Quest
 	var err error
 	if status == "" {
-		list, err = s.store.Queries().ListQuests(r.Context())
+		list, err = s.store.Queries().ListQuests(r.Context(), userID)
 	} else {
-		list, err = s.store.Queries().ListQuestsByStatus(r.Context(), status)
+		list, err = s.store.Queries().ListQuestsByStatus(r.Context(), store.ListQuestsByStatusParams{UserID: userID, Status: status})
 	}
 	if err != nil {
 		slog.Error("list quests", "err", err)
@@ -75,6 +76,7 @@ func (s *Server) handleCreateQuest(w http.ResponseWriter, r *http.Request) {
 
 	q, err := s.store.Queries().CreateQuest(r.Context(), store.CreateQuestParams{
 		ID:             uuid.NewString(),
+		UserID:         currentUser(r).ID,
 		Title:          strings.TrimSpace(req.Title),
 		Description:    strings.TrimSpace(req.Description),
 		DurationBucket: req.DurationBucket,
@@ -93,7 +95,7 @@ func (s *Server) handleCreateQuest(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleAcceptQuest(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	q, err := s.store.Queries().AcceptQuest(r.Context(), id)
+	q, err := s.store.Queries().AcceptQuest(r.Context(), store.AcceptQuestParams{ID: id, UserID: currentUser(r).ID})
 	if err != nil {
 		if isNoRows(err) {
 			writeError(w, http.StatusNotFound, "quest not found or not generated")
@@ -108,7 +110,8 @@ func (s *Server) handleAcceptQuest(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleCompleteQuest(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	q, err := s.store.Queries().GetQuest(r.Context(), id)
+	userID := currentUser(r).ID
+	q, err := s.store.Queries().GetQuest(r.Context(), store.GetQuestParams{ID: id, UserID: userID})
 	if err != nil {
 		if isNoRows(err) {
 			writeError(w, http.StatusNotFound, "quest not found")
@@ -147,6 +150,7 @@ func (s *Server) handleCompleteQuest(w http.ResponseWriter, r *http.Request) {
 
 	completed, err := s.store.Queries().CompleteQuest(r.Context(), store.CompleteQuestParams{
 		ID:          id,
+		UserID:      userID,
 		CompletedAt: toNullString(now),
 		PhotoPath:   toNullString(photoPath),
 		XpAwarded:   toNullInt(int64(awarded)),
@@ -156,12 +160,13 @@ func (s *Server) handleCompleteQuest(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "could not complete quest")
 		return
 	}
+	s.refreshSummaryInBackground(userID)
 	writeJSON(w, http.StatusOK, toQuestDTO(completed))
 }
 
 func (s *Server) handleDeleteQuest(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	if err := s.store.Queries().DeleteQuest(r.Context(), id); err != nil {
+	if err := s.store.Queries().DeleteQuest(r.Context(), store.DeleteQuestParams{ID: id, UserID: currentUser(r).ID}); err != nil {
 		slog.Error("delete quest", "err", err)
 		writeError(w, http.StatusInternalServerError, "could not delete quest")
 		return
