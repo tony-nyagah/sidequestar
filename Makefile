@@ -10,6 +10,10 @@ setup:
 
 # Start Ollama (if needed), the API, and the frontend. Ctrl-C stops them all.
 dev:
+	@if (echo >/dev/tcp/127.0.0.1/8080) 2>/dev/null; then \
+		echo "Port 8080 is already in use (another API still running?). Stop it first: kill \$$(lsof -ti:8080)"; \
+		exit 1; \
+	fi
 	@curl -sf localhost:11434/api/version >/dev/null || (ollama serve >/tmp/sidequestar-ollama.log 2>&1 &)
 	@set -m; \
 	(cd api && OLLAMA_MODEL=$(MODEL) go run ./cmd/server) & api=$$!; \
