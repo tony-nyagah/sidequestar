@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -28,6 +30,17 @@ func main() {
 		os.Exit(1)
 	}
 	defer st.Close()
+
+	// `server reset-password <username>` is the account recovery path: there's no email.
+	if len(os.Args) == 3 && os.Args[1] == "reset-password" {
+		password, err := server.ResetPassword(context.Background(), st, os.Args[2])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "reset password for %q: %v\n", os.Args[2], err)
+			os.Exit(1)
+		}
+		fmt.Printf("New password for %s: %s\nThey've been signed out everywhere; send them this and ask them to change it.\n", os.Args[2], password)
+		return
+	}
 
 	srv := server.New(st, filepath.Join(dataDir, "photos"))
 

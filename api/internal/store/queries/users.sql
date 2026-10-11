@@ -41,3 +41,18 @@ WHERE user_id = sqlc.arg(user_id);
 UPDATE profiles
 SET summary = sqlc.arg(summary), summary_user_edit = sqlc.arg(summary), summary_updated_at = sqlc.arg(summary_updated_at)
 WHERE user_id = sqlc.arg(user_id);
+
+-- name: GetUserByID :one
+SELECT * FROM users WHERE id = ?;
+
+-- name: UpdatePasswordHash :exec
+UPDATE users SET password_hash = sqlc.arg(password_hash) WHERE id = sqlc.arg(id);
+
+-- name: DeleteSessionsForUser :exec
+DELETE FROM sessions WHERE user_id = ?;
+
+-- name: DeleteOtherSessions :exec
+DELETE FROM sessions WHERE user_id = sqlc.arg(user_id) AND token_hash != sqlc.arg(token_hash);
+
+-- name: DeleteUser :exec
+DELETE FROM users WHERE id = ?;

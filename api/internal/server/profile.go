@@ -134,6 +134,10 @@ func (s *Server) handleRefreshSummary(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusServiceUnavailable, "no model available; start Ollama")
 		return
 	}
+	if !s.limits.quests.take(currentUser(r).ID) {
+		tooMany(w, "That's a lot of rewrites in the last hour. Try again later.")
+		return
+	}
 	ctx, cancel := context.WithTimeout(r.Context(), generateTimeout)
 	defer cancel()
 	if err := s.refreshSummary(ctx, currentUser(r).ID); err != nil {

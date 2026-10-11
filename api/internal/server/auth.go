@@ -63,6 +63,12 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ip := clientIP(r)
+	if s.limits.register.full(ip) {
+		tooMany(w, "Too many new accounts from your network. Try again in an hour.")
+		return
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcrypt.DefaultCost)
 	if err != nil {
 		slog.Error("hash password", "err", err)
@@ -79,6 +85,7 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "could not create account")
 		return
 	}
+	s.limits.register.add(ip)
 	s.startSession(w, r.Context(), user, http.StatusCreated)
 }
 
@@ -86,6 +93,11 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	var c credentials
 	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	name, ip := strings.ToLower(strings.TrimSpace(c.Username)), clientIP(r)
+	if s.limits.loginByUser.full(name) || s.limits.loginByIP.full(ip) {
+		tooMany(w, "Too many failed sign-ins. Wait 15 minutes and try again.")
 		return
 	}
 	user, err := s.store.Queries().GetUserByUsername(r.Context(), strings.TrimSpace(c.Username))
@@ -98,9 +110,12 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if bcrypt.CompareHashAndPassword(hash, []byte(c.Password)) != nil || err != nil {
+		s.limits.loginByUser.add(name)
+		s.limits.loginByIP.add(ip)
 		writeError(w, http.StatusUnauthorized, "Wrong username or password.")
 		return
 	}
+	s.limits.loginByUser.reset(name)
 	s.startSession(w, r.Context(), user, http.StatusOK)
 }
 

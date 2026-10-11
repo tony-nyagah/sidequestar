@@ -41,3 +41,9 @@ SELECT COUNT(*) AS count FROM quests WHERE user_id = sqlc.arg(user_id) AND statu
 
 -- name: ClaimUnownedQuests :exec
 UPDATE quests SET user_id = sqlc.arg(user_id) WHERE user_id = '';
+
+-- name: ListPhotoPaths :many
+SELECT photo_path FROM quests WHERE user_id = sqlc.arg(user_id) AND photo_path IS NOT NULL;
+
+-- name: DeleteQuestsForUser :exec
+DELETE FROM quests WHERE user_id = sqlc.arg(user_id);

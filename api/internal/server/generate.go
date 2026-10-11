@@ -38,9 +38,22 @@ func (s *Server) handleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := currentUser(r).ID
+	if !s.limits.quests.take(userID) {
+		tooMany(w, "That's 30 quests in the last hour. Go do one of them!")
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(r.Context(), generateTimeout)
 	defer cancel()
-	idea, err := s.gen.Generate(ctx, s.buildPrompt(ctx, currentUser(r).ID, strings.TrimSpace(req.Context)))
+	prompt := s.buildPrompt(ctx, userID, strings.TrimSpace(req.Context))
+	release, err := s.limits.useModel(ctx)
+	if err != nil {
+		s.writeModelError(w, err, "The quest-giver is busy. Try again in a minute.")
+		return
+	}
+	idea, err := s.gen.Generate(ctx, prompt)
+	release()
 	if err != nil {
 		slog.Error("generate quest", "err", err)
 		s.writeModelError(w, err, "The quest-giver couldn't come up with a quest. Try again.")
@@ -53,7 +66,7 @@ func (s *Server) handleGenerate(w http.ResponseWriter, r *http.Request) {
 
 	q, err := s.store.Queries().CreateQuest(r.Context(), store.CreateQuestParams{
 		ID:             uuid.NewString(),
-		UserID:         currentUser(r).ID,
+		UserID:         userID,
 		Title:          strings.TrimSpace(idea.Title),
 		Description:    strings.TrimSpace(idea.Description),
 		DurationBucket: idea.DurationBucket,

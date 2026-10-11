@@ -175,6 +175,15 @@ func (q *Queries) DeleteQuest(ctx context.Context, arg DeleteQuestParams) error 
 	return err
 }
 
+const deleteQuestsForUser = `-- name: DeleteQuestsForUser :exec
+DELETE FROM quests WHERE user_id = ?1
+`
+
+func (q *Queries) DeleteQuestsForUser(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteQuestsForUser, userID)
+	return err
+}
+
 const getQuest = `-- name: GetQuest :one
 SELECT id, title, description, duration_bucket, source, status, tags, photo_path, xp_awarded, created_at, completed_at, user_id FROM quests WHERE id = ?1 AND user_id = ?2
 `
@@ -202,6 +211,33 @@ func (q *Queries) GetQuest(ctx context.Context, arg GetQuestParams) (Quest, erro
 		&i.UserID,
 	)
 	return i, err
+}
+
+const listPhotoPaths = `-- name: ListPhotoPaths :many
+SELECT photo_path FROM quests WHERE user_id = ?1 AND photo_path IS NOT NULL
+`
+
+func (q *Queries) ListPhotoPaths(ctx context.Context, userID string) ([]sql.NullString, error) {
+	rows, err := q.db.QueryContext(ctx, listPhotoPaths, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []sql.NullString{}
+	for rows.Next() {
+		var photo_path sql.NullString
+		if err := rows.Scan(&photo_path); err != nil {
+			return nil, err
+		}
+		items = append(items, photo_path)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listQuests = `-- name: ListQuests :many

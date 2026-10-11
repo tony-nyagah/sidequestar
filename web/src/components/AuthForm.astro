@@ -7,6 +7,7 @@ interface Props {
 
 const { mode } = Astro.props;
 const error = Astro.url.searchParams.get("error");
+const notice = Astro.url.searchParams.get("notice");
 const username = Astro.url.searchParams.get("username") ?? "";
 const isLogin = mode === "login";
 ---
@@ -25,6 +26,15 @@ const isLogin = mode === "login";
         : "Start your first side quest. Your quests and what the quest-giver learns about you stay in your own account."
     }
   </p>
+
+  {
+    notice && (
+      <div role="status" class="alert mt-5 rounded-box border-[1.5px] border-base-content bg-success text-success-content">
+        <Icon name="ph:check-circle-bold" class="size-6" aria-hidden="true" />
+        <span>{notice}</span>
+      </div>
+    )
+  }
 
   {
     error && (

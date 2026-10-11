@@ -90,12 +90,44 @@ func (q *Queries) DeleteExpiredSessions(ctx context.Context, expiresAt string) e
 	return err
 }
 
+const deleteOtherSessions = `-- name: DeleteOtherSessions :exec
+DELETE FROM sessions WHERE user_id = ?1 AND token_hash != ?2
+`
+
+type DeleteOtherSessionsParams struct {
+	UserID    string
+	TokenHash string
+}
+
+func (q *Queries) DeleteOtherSessions(ctx context.Context, arg DeleteOtherSessionsParams) error {
+	_, err := q.db.ExecContext(ctx, deleteOtherSessions, arg.UserID, arg.TokenHash)
+	return err
+}
+
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM sessions WHERE token_hash = ?
 `
 
 func (q *Queries) DeleteSession(ctx context.Context, tokenHash string) error {
 	_, err := q.db.ExecContext(ctx, deleteSession, tokenHash)
+	return err
+}
+
+const deleteSessionsForUser = `-- name: DeleteSessionsForUser :exec
+DELETE FROM sessions WHERE user_id = ?
+`
+
+func (q *Queries) DeleteSessionsForUser(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, deleteSessionsForUser, userID)
+	return err
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users WHERE id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
 	return err
 }
 
@@ -129,6 +161,22 @@ type GetSessionUserParams struct {
 
 func (q *Queries) GetSessionUser(ctx context.Context, arg GetSessionUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, getSessionUser, arg.TokenHash, arg.Now)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.PasswordHash,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, username, password_hash, created_at FROM users WHERE id = ?
+`
+
+func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -185,6 +233,20 @@ type SaveGeneratedSummaryParams struct {
 
 func (q *Queries) SaveGeneratedSummary(ctx context.Context, arg SaveGeneratedSummaryParams) error {
 	_, err := q.db.ExecContext(ctx, saveGeneratedSummary, arg.Summary, arg.SummaryUpdatedAt, arg.UserID)
+	return err
+}
+
+const updatePasswordHash = `-- name: UpdatePasswordHash :exec
+UPDATE users SET password_hash = ?1 WHERE id = ?2
+`
+
+type UpdatePasswordHashParams struct {
+	PasswordHash string
+	ID           string
+}
+
+func (q *Queries) UpdatePasswordHash(ctx context.Context, arg UpdatePasswordHashParams) error {
+	_, err := q.db.ExecContext(ctx, updatePasswordHash, arg.PasswordHash, arg.ID)
 	return err
 }
 

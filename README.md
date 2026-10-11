@@ -44,12 +44,21 @@ If you used Sidequestar before it had accounts, register yourself first: the fir
 | `PORT` | API | `8080` |
 | `API_HOST` | API | `127.0.0.1` (only this machine; the frontend talks to it) |
 | `GO_API_URL` | frontend | `http://127.0.0.1:8080` |
+| `TRUST_PROXY` | frontend | unset (set it behind a reverse proxy so sign-in limits see real visitor addresses) |
 
 For example, `make dev MODEL=gemma2:9b` uses a different local model.
 
 ### Security notes
 
-Passwords are stored as bcrypt hashes. Sessions are random tokens, stored only as hashes and kept in 30-day HttpOnly cookies. Sidequestar is meant for your own machine or home network. It has no password reset, account deletion or limit on sign-in attempts yet, so don't put it on the internet as it is.
+Passwords are stored as bcrypt hashes. Sessions are random tokens, stored only as hashes and kept in 30-day HttpOnly cookies (Secure when served over HTTPS). Sign-in is limited to 5 failed attempts per username and 20 per address every 15 minutes, and an address can create 5 accounts an hour. The model handles one request at a time, and each account can ask for 30 quests an hour, so one person can't keep the CPU busy for everyone else.
+
+You can change your password or delete your account (quests, photos, summary and all) from the profile page. There's no email, so if someone forgets their password, whoever runs the server resets it:
+
+```bash
+cd api && go run ./cmd/server reset-password <username>
+```
+
+That prints a new password and signs the account out everywhere.
 
 ## Why the model runs locally
 

@@ -6,6 +6,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
@@ -20,18 +21,25 @@ type Querier interface {
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteExpiredSessions(ctx context.Context, expiresAt string) error
+	DeleteOtherSessions(ctx context.Context, arg DeleteOtherSessionsParams) error
 	DeleteQuest(ctx context.Context, arg DeleteQuestParams) error
+	DeleteQuestsForUser(ctx context.Context, userID string) error
 	DeleteSession(ctx context.Context, tokenHash string) error
+	DeleteSessionsForUser(ctx context.Context, userID string) error
+	DeleteUser(ctx context.Context, id string) error
 	GetProfile(ctx context.Context, userID string) (Profile, error)
 	GetQuest(ctx context.Context, arg GetQuestParams) (Quest, error)
 	GetSessionUser(ctx context.Context, arg GetSessionUserParams) (User, error)
+	GetUserByID(ctx context.Context, id string) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	ListPhotoPaths(ctx context.Context, userID string) ([]sql.NullString, error)
 	ListQuests(ctx context.Context, userID string) ([]Quest, error)
 	ListQuestsByStatus(ctx context.Context, arg ListQuestsByStatusParams) ([]Quest, error)
 	PhotoBelongsTo(ctx context.Context, arg PhotoBelongsToParams) (int64, error)
 	SaveEditedSummary(ctx context.Context, arg SaveEditedSummaryParams) error
 	SaveGeneratedSummary(ctx context.Context, arg SaveGeneratedSummaryParams) error
 	TotalCompletedXp(ctx context.Context, userID string) (int64, error)
+	UpdatePasswordHash(ctx context.Context, arg UpdatePasswordHashParams) error
 	UpdateProfile(ctx context.Context, arg UpdateProfileParams) (Profile, error)
 }
 

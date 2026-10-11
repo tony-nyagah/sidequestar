@@ -8,6 +8,11 @@ const PUBLIC = ["/login", "/register", "/api/auth/login", "/api/auth/register"];
 // Every page and proxy route needs a signed-in user; the session token lives in an
 // HttpOnly cookie and is checked against the Go API on each request.
 export const onRequest = defineMiddleware(async (context, next) => {
+  // The API rate-limits sign-ins by address. Behind a reverse proxy the socket address
+  // is the proxy's, so trust its X-Forwarded-For only when TRUST_PROXY says there is one.
+  const forwarded = (process.env as Record<string, string | undefined>).TRUST_PROXY ? context.request.headers.get("x-forwarded-for") : null;
+  context.locals.clientIP = forwarded?.split(",")[0].trim() || context.clientAddress;
+
   const { pathname } = context.url;
   if (PUBLIC.includes(pathname) || pathname.startsWith("/_astro/") || pathname === "/contours.svg") {
     return next();

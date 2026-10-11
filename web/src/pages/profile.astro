@@ -19,6 +19,7 @@ try {
 }
 
 const error = Astro.url.searchParams.get("error");
+const notice = Astro.url.searchParams.get("notice");
 const heading = "flex items-center gap-2 border-b-[1.5px] border-base-content pb-2 font-display text-2xl font-bold";
 const segments = 10;
 const filled = profile
@@ -53,6 +54,15 @@ const dateFmt = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", 
         <div role="alert" class="alert mt-6 rounded-box border-[1.5px] border-base-content bg-error text-error-content">
           <Icon name="ph:x-circle-bold" class="size-6" aria-hidden="true" />
           <span>{error}</span>
+        </div>
+      )
+    }
+
+    {
+      notice && (
+        <div role="status" class="alert mt-6 rounded-box border-[1.5px] border-base-content bg-success text-success-content">
+          <Icon name="ph:check-circle-bold" class="size-6" aria-hidden="true" />
+          <span>{notice}</span>
         </div>
       )
     }
@@ -156,6 +166,51 @@ const dateFmt = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", 
             </section>
 
             <ProfileForm profile={profile} />
+
+            <section id="account" aria-labelledby="account-title" class="rounded-box border-[1.5px] border-base-content bg-base-100 p-5 sm:p-6">
+              <div class="mb-4 flex items-center gap-2 border-b-[1.5px] border-base-content pb-2">
+                <Icon name="ph:key-bold" class="size-6 text-accent" aria-hidden="true" />
+                <h2 id="account-title" class="font-display text-2xl font-bold">Account</h2>
+              </div>
+
+              <form method="post" action="/api/account/password" class="grid gap-3">
+                <h3 class="font-display text-lg font-semibold">Change password</h3>
+                <label class="block">
+                  <span class="mb-1.5 block font-medium">Current password</span>
+                  <input type="password" name="current_password" required autocomplete="current-password" class="input w-full border-base-content" />
+                </label>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <label class="block">
+                    <span class="mb-1.5 block font-medium">New password</span>
+                    <input type="password" name="new_password" required minlength={8} maxlength={72} autocomplete="new-password" class="input w-full border-base-content" />
+                  </label>
+                  <label class="block">
+                    <span class="mb-1.5 block font-medium">New password again</span>
+                    <input type="password" name="confirm_password" required minlength={8} maxlength={72} autocomplete="new-password" class="input w-full border-base-content" />
+                  </label>
+                </div>
+                <button type="submit" class="btn btn-neutral btn-outline sm:w-auto sm:justify-self-start">
+                  <Icon name="ph:check-bold" class="size-5" aria-hidden="true" />
+                  Change password
+                </button>
+              </form>
+
+              <form method="post" action="/api/account/delete" class="mt-6 grid gap-3 border-t-[1.5px] border-base-300 pt-5">
+                <h3 class="font-display text-lg font-semibold">Delete account</h3>
+                <p class="max-w-[65ch] text-base-content/80">
+                  This deletes your account, your quests and photos, your XP, and everything the quest-giver
+                  has learned about you. It can't be undone.
+                </p>
+                <label class="block">
+                  <span class="mb-1.5 block font-medium">Your password, to confirm</span>
+                  <input type="password" name="password" required autocomplete="current-password" class="input w-full border-base-content sm:max-w-sm" />
+                </label>
+                <button type="submit" class="btn btn-error btn-outline sm:w-auto sm:justify-self-start">
+                  <Icon name="ph:trash-bold" class="size-5" aria-hidden="true" />
+                  Delete my account
+                </button>
+              </form>
+            </section>
           </section>
 
           <section aria-labelledby="xp-title" class="order-first lg:order-none lg:col-span-5">

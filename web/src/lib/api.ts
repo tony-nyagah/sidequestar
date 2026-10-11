@@ -65,6 +65,7 @@ export const GO_API_URL: string =
 export function goFetch(locals: App.Locals, path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
   if (locals.token) headers.set("Authorization", `Bearer ${locals.token}`);
+  if (locals.clientIP) headers.set("X-Client-IP", locals.clientIP);
   return fetch(`${GO_API_URL}${path}`, { ...init, headers });
 }
 

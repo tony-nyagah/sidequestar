@@ -134,3 +134,31 @@ func MarshalTags(tags []string) string {
 	b, _ := json.Marshal(tags)
 	return string(b)
 }
+
+// DeleteUser removes the account and everything that belongs to it, and returns
+// the photo file names so the caller can delete the files.
+func (s *Store) DeleteUser(ctx context.Context, userID string) ([]string, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	q := s.q.WithTx(tx)
+
+	rows, err := q.ListPhotoPaths(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	photos := make([]string, 0, len(rows))
+	for _, p := range rows {
+		photos = append(photos, p.String)
+	}
+	if err := q.DeleteQuestsForUser(ctx, userID); err != nil {
+		return nil, err
+	}
+	// Profile and sessions go with the user (ON DELETE CASCADE).
+	if err := q.DeleteUser(ctx, userID); err != nil {
+		return nil, err
+	}
+	return photos, tx.Commit()
+}

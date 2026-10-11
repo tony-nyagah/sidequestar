@@ -18,13 +18,14 @@ type Server struct {
 	photosDir  string
 	gen        ollama.Generator
 	background sync.WaitGroup
+	limits     *limits
 }
 
 func New(st *store.Store, photosDir string) *Server {
 	if err := os.MkdirAll(photosDir, 0o755); err != nil {
 		panic("create photos dir: " + err.Error())
 	}
-	return &Server{store: st, photosDir: photosDir}
+	return &Server{store: st, photosDir: photosDir, limits: newLimits()}
 }
 
 func (s *Server) SetGenerator(g ollama.Generator) {
@@ -41,6 +42,8 @@ func (s *Server) Handler() http.Handler {
 
 	// Everything below belongs to the signed-in user.
 	mux.HandleFunc("GET /api/me", s.requireUser(s.handleMe))
+	mux.HandleFunc("POST /api/me/password", s.requireUser(s.handleChangePassword))
+	mux.HandleFunc("DELETE /api/me", s.requireUser(s.handleDeleteAccount))
 	mux.HandleFunc("GET /api/quests", s.requireUser(s.handleListQuests))
 	mux.HandleFunc("POST /api/quests", s.requireUser(s.handleCreateQuest))
 	mux.HandleFunc("POST /api/quests/generate", s.requireUser(s.handleGenerate))

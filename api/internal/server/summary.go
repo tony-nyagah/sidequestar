@@ -28,7 +28,12 @@ func (s *Server) refreshSummary(ctx context.Context, userID string) error {
 		return err
 	}
 
+	release, err := s.limits.useModel(ctx)
+	if err != nil {
+		return err
+	}
 	summary, err := s.gen.Complete(ctx, buildSummaryPrompt(p, quests))
+	release()
 	if err != nil {
 		return err
 	}

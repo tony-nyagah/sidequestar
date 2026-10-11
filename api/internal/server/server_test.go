@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -375,5 +377,143 @@ func TestQuestPromptForbidsInventedPlaces(t *testing.T) {
 	c.do(http.MethodPost, "/api/quests/generate", `{"context":"free evening"}`)
 	if !strings.Contains(gen.prompt, "Never name a specific place") {
 		t.Fatal("quest prompt no longer tells the model not to invent places")
+	}
+}
+
+func (c client) doFrom(ip, method, path, body string) *httptest.ResponseRecorder {
+	c.t.Helper()
+	r := httptest.NewRequest(method, path, strings.NewReader(body))
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Set("X-Client-IP", ip)
+	if c.token != "" {
+		r.Header.Set("Authorization", "Bearer "+c.token)
+	}
+	w := httptest.NewRecorder()
+	c.h.ServeHTTP(w, r)
+	return w
+}
+
+func TestSignInLockout(t *testing.T) {
+	h := newTestServer(t).Handler()
+	register(t, h, "amina")
+	anon := client{t: t, h: h}
+	for i := 0; i < 5; i++ {
+		anon.doFrom("10.0.0.1", http.MethodPost, "/api/auth/login", `{"username":"amina","password":"wrong password"}`)
+	}
+	// Locked by username, even from another address and with the right password.
+	if w := anon.doFrom("10.0.0.2", http.MethodPost, "/api/auth/login", `{"username":"Amina","password":"correct horse"}`); w.Code != http.StatusTooManyRequests {
+		t.Fatalf("after 5 failures = %d, want 429", w.Code)
+	}
+	register(t, h, "brian")
+	if w := anon.doFrom("10.0.0.2", http.MethodPost, "/api/auth/login", `{"username":"brian","password":"correct horse"}`); w.Code != http.StatusOK {
+		t.Fatalf("another user = %d, want 200", w.Code)
+	}
+}
+
+func TestRegistrationLimitPerAddress(t *testing.T) {
+	anon := client{t: t, h: newTestServer(t).Handler()}
+	for i := 0; i < 5; i++ {
+		if w := anon.doFrom("10.0.0.9", http.MethodPost, "/api/auth/register", fmt.Sprintf(`{"username":"user%d","password":"correct horse"}`, i)); w.Code != http.StatusCreated {
+			t.Fatalf("register %d = %d", i, w.Code)
+		}
+	}
+	if w := anon.doFrom("10.0.0.9", http.MethodPost, "/api/auth/register", `{"username":"user5","password":"correct horse"}`); w.Code != http.StatusTooManyRequests {
+		t.Fatalf("6th account = %d, want 429", w.Code)
+	}
+	if w := anon.doFrom("10.0.0.10", http.MethodPost, "/api/auth/register", `{"username":"user5","password":"correct horse"}`); w.Code != http.StatusCreated {
+		t.Fatalf("other address = %d, want 201", w.Code)
+	}
+}
+
+func TestChangePasswordKeepsOnlyThisSession(t *testing.T) {
+	h := newTestServer(t).Handler()
+	phone := register(t, h, "amina")
+	var s sessionDTO
+	anon := client{t: t, h: h}
+	anon.decode(anon.do(http.MethodPost, "/api/auth/login", `{"username":"amina","password":"correct horse"}`), &s)
+	laptop := client{t: t, h: h, token: s.Token}
+
+	if w := laptop.do(http.MethodPost, "/api/me/password", `{"current_password":"wrong","new_password":"new password 1"}`); w.Code != http.StatusUnauthorized {
+		t.Fatalf("wrong current password = %d, want 401", w.Code)
+	}
+	if w := laptop.do(http.MethodPost, "/api/me/password", `{"current_password":"correct horse","new_password":"new password 1"}`); w.Code != http.StatusNoContent {
+		t.Fatalf("change password = %d %s", w.Code, w.Body.String())
+	}
+	if w := laptop.do(http.MethodGet, "/api/me", ""); w.Code != http.StatusOK {
+		t.Fatalf("this session after change = %d, want 200", w.Code)
+	}
+	if w := phone.do(http.MethodGet, "/api/me", ""); w.Code != http.StatusUnauthorized {
+		t.Fatalf("other session after change = %d, want 401", w.Code)
+	}
+	if w := anon.do(http.MethodPost, "/api/auth/login", `{"username":"amina","password":"new password 1"}`); w.Code != http.StatusOK {
+		t.Fatalf("login with new password = %d", w.Code)
+	}
+}
+
+func TestDeleteAccountRemovesEverything(t *testing.T) {
+	s := newTestServer(t)
+	h := s.Handler()
+	amina := register(t, h, "amina")
+	brian := register(t, h, "brian")
+	done := amina.completeWithPhoto(amina.createQuest("Paint").ID, "mural.jpg")
+	var q questDTO
+	amina.decode(done, &q)
+	photo := s.photoPathFor(q.PhotoPath)
+	if _, err := os.Stat(photo); err != nil {
+		t.Fatalf("photo not saved: %v", err)
+	}
+
+	if w := amina.do(http.MethodDelete, "/api/me", `{"password":"wrong"}`); w.Code != http.StatusUnauthorized {
+		t.Fatalf("delete with wrong password = %d, want 401", w.Code)
+	}
+	if w := amina.do(http.MethodDelete, "/api/me", `{"password":"correct horse"}`); w.Code != http.StatusNoContent {
+		t.Fatalf("delete = %d %s", w.Code, w.Body.String())
+	}
+	if w := amina.do(http.MethodGet, "/api/me", ""); w.Code != http.StatusUnauthorized {
+		t.Fatalf("session after delete = %d, want 401", w.Code)
+	}
+	if _, err := os.Stat(photo); !os.IsNotExist(err) {
+		t.Fatalf("photo file still there: %v", err)
+	}
+	anon := client{t: t, h: h}
+	if w := anon.do(http.MethodPost, "/api/auth/login", `{"username":"amina","password":"correct horse"}`); w.Code != http.StatusUnauthorized {
+		t.Fatalf("login after delete = %d, want 401", w.Code)
+	}
+	if w := brian.do(http.MethodGet, "/api/me", ""); w.Code != http.StatusOK {
+		t.Fatalf("other account after delete = %d, want 200", w.Code)
+	}
+	// The username is free again.
+	register(t, h, "amina")
+}
+
+func TestResetPassword(t *testing.T) {
+	s := newTestServer(t)
+	h := s.Handler()
+	amina := register(t, h, "amina")
+	password, err := ResetPassword(context.Background(), s.store, "amina")
+	if err != nil || len(password) < 12 {
+		t.Fatalf("reset = %q, %v", password, err)
+	}
+	if w := amina.do(http.MethodGet, "/api/me", ""); w.Code != http.StatusUnauthorized {
+		t.Fatalf("old session after reset = %d, want 401", w.Code)
+	}
+	anon := client{t: t, h: h}
+	body, _ := json.Marshal(map[string]string{"username": "amina", "password": password})
+	if w := anon.do(http.MethodPost, "/api/auth/login", string(body)); w.Code != http.StatusOK {
+		t.Fatalf("login with reset password = %d", w.Code)
+	}
+}
+
+func TestQuestsPerHourCap(t *testing.T) {
+	s := newTestServer(t)
+	s.SetGenerator(&captureGen{})
+	c := register(t, s.Handler(), "amina")
+	for i := 0; i < 30; i++ {
+		if w := c.do(http.MethodPost, "/api/quests/generate", `{"context":"free evening"}`); w.Code != http.StatusCreated {
+			t.Fatalf("quest %d = %d", i, w.Code)
+		}
+	}
+	if w := c.do(http.MethodPost, "/api/quests/generate", `{"context":"free evening"}`); w.Code != http.StatusTooManyRequests {
+		t.Fatalf("31st quest = %d, want 429", w.Code)
 	}
 }
