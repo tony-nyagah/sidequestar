@@ -1,16 +1,18 @@
+<!-- dev.to title: Sidequestar: a local quest-giver that gets to know you -->
+
 *This is a submission for the [Hacktoberfest Open-Source AI Challenge Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05)*
 
 ## What I Built
 
 **The main quest can wait.** One small escape at a time.
 
-You finish work, you know there has to be more to life than another evening on a screen, and you still have no idea what to do with the next two hours. Sidequestar is for that moment.
+You finish work, you know there has to be more to life than another evening on a screen, and you still have no idea what to do with the next two hours. Sidequestar is for that moment: a quest-giver running on your own machine that hands you one small thing to do, and gets to know you a little better every time you do one.
 
 You tell it your situation ("two hours this evening, want to be outside"), a model running on your own machine writes one specific quest, and you go do it. Finish it and you get XP and levels. Add a photo and you get a bit more. The whole thing on screen takes about twenty seconds, and then you're out the door.
 
 ![The Sidequestar home page: the summon box, a fresh quest ("Limuru Evening Bike Ride: explore a new forest trail on two wheels"), and the route of accepted quests](https://raw.githubusercontent.com/tony-nyagah/sidequestar/main/screenshots/home.png)
 
-It also gets to know you. Every time you finish a quest, the model rewrites a short summary of what you seem to enjoy and when you're free, and that summary shapes the next quest. I didn't want that to be a black box, so the profile page shows, word for word, what the model is told about you, and you can edit the summary if it gets something wrong. Everyone on the machine has their own account, so housemates get their own quests, XP and summaries.
+Every time you finish a quest, the model rewrites a short summary of what you seem to enjoy and when you're free, and that summary shapes the next quest. I didn't want that to be a black box, so the profile page shows, word for word, what the model is told about you, and you can edit the summary if it gets something wrong. Everyone on the machine has their own account, so housemates get their own quests, XP and summaries.
 
 ![The profile page: the exact lines sent to the model with every quest, the summary it wrote, and the XP log](https://raw.githubusercontent.com/tony-nyagah/sidequestar/main/screenshots/profile.png)
 
