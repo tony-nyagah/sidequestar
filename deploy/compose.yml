@@ -15,7 +15,7 @@ services:
     volumes:
       - ollama:/root/.ollama
     networks: [app]
-    mem_limit: 3g
+    mem_limit: 3500m
     logging: &logging
       driver: json-file
       options: { max-size: "10m", max-file: "3" }
