@@ -14,7 +14,7 @@ Yesterday I went cycling in Tigoni with a group: 33.64 km, 3 hours 26 minutes an
 
 ## Demo
 
-<!-- TODO: upload ~/Videos/sidequestar-demo.mp4 to YouTube and embed it with {% youtube VIDEO_ID %}, or drag ~/Videos/sidequestar-demo.gif into the editor. -->
+{% youtube leNfHCF8VTE %}
 
 In the demo I create an account, ask for a quest on a Saturday morning with my bike and half a day free, finish it with a photo, and then open the profile page to see what the model knows. The waits for the model are sped up.
 
